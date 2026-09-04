@@ -1,9 +1,10 @@
-# Klein Tools — Lineman's pliers
+# Klein Tools 1005 — Wire crimper / cutter
 
 Source photo: `IMG_1805.jpeg`
 
 | | |
 |---|---|
+| Part number | 1005 |
 | Measured length | 246 mm |
 | Measured width | 51 mm |
 | Cutout depth | 20 mm |
@@ -17,5 +18,5 @@ Source photo: `IMG_1805.jpeg`
 ## Regenerate
 
 ```
-python3 ../../scripts/make_tool.py <photo> lineman-pliers --length 246 --width 51 --outdir .
+python3 ../../scripts/make_tool.py <photo> klein-1005 --length 246 --width 51 --outdir .
 ```
