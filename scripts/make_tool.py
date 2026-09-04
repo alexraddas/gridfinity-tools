@@ -6,6 +6,14 @@ from toolseg import segment, metrics
 from contour import to_mm, resample, smooth
 from fmcp import Fusion
 
+def _chunk(s, width=180):
+    """Emit a long string as adjacent literals on separate lines.
+
+    Fusion's MCP server silently drops a script containing any single line
+    longer than roughly 4 KB -- it returns success and never runs it. Long
+    outline data must therefore be wrapped."""
+    return "\n".join(repr(s[i:i+width]) for i in range(0, len(s), width))
+
 # --- defaults agreed with the user ---
 HEIGHT   = 20.0   # extrusion height, mm
 OFFSET   = 1.5    # radial clearance offset, mm
@@ -52,8 +60,10 @@ def width_profile(P,res=8.0):
 
 def build(name,P,height,slot_y,slot_len,slot_w,outdir,stem='cutout',keep_open=False):
     script='''
-import adsk.core, adsk.fusion, os
-PTS=%s
+import adsk.core, adsk.fusion, os, json
+PTS=json.loads(
+%s
+)
 NAME=%r; OUT=%r; H=%r; SY=%r; SLEN=%r; SW=%r; STEM=%r; KEEP_OPEN=%r
 
 def run(_context: str):
@@ -125,7 +135,7 @@ def run(_context: str):
     if not KEEP_OPEN:
         _doc.close(False)   # close only after every export has landed
         print("document closed")
-''' % (json.dumps([[round(float(x),4),round(float(y),4)] for x,y in P]),
+''' % (_chunk(json.dumps([[round(float(x),4),round(float(y),4)] for x,y in P])),
        name,outdir,float(height),float(slot_y),float(slot_len),float(slot_w),stem,keep_open)
     return Fusion().call("fusion_mcp_execute",{"featureType":"script","object":{"script":script}})
 
@@ -149,6 +159,7 @@ def main():
     ap.add_argument("--mirror",action="store_true",help="mirror across the long axis")
     ap.add_argument("--no-build",action="store_true")
     a=ap.parse_args()
+    a.outdir=os.path.abspath(a.outdir)
 
     sm,mask,c=segment(a.image,dbg=f"chk_{a.name}_trace.png")
     Lp,Wp,_=metrics(c)

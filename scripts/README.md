@@ -63,3 +63,13 @@ Red grips (b\* ≈ +11) sit close enough to wood that they never triggered this.
 Both scripts create a scratch Fusion document, export, then close it. Pass
 `--keep-open` to leave it open for inspection. Without that they would pile up
 one document per run.
+
+## Fusion MCP gotchas
+
+- **No line in the generated script may exceed ~4 KB.** The server accepts an
+  oversized line, returns success, and silently never runs the script. Outline
+  data is therefore emitted as adjacent string literals across many lines.
+- **Paths must be absolute.** The script executes inside Fusion, whose working
+  directory is elsewhere and read-only.
+- **The session id must be sent on every request**, and the `initialized`
+  notification must follow `initialize`, or `tools/list` returns empty.

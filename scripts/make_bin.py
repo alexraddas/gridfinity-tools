@@ -13,6 +13,14 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from fmcp import Fusion
 
+def _chunk(s, width=180):
+    """Emit a long string as adjacent literals on separate lines.
+
+    Fusion's MCP server silently drops a script containing any single line
+    longer than roughly 4 KB -- it returns success and never runs it. Long
+    outline data must therefore be wrapped."""
+    return "\n".join(repr(s[i:i+width]) for i in range(0, len(s), width))
+
 GRID, CLEAR, WALL, BASE_H = 42.0, 0.62, 1.2, 4.75
 CELL = [(0.00, 35.48, 0.80), (0.80, 37.08, 1.60),
         (2.60, 37.08, 1.60), (4.75, 41.38, 3.75)]
@@ -23,7 +31,9 @@ LIP  = [(0.000, 0.00, 3.75), (1.909, 2.15, 1.60),
 
 SCRIPT = r'''
 import adsk.core, adsk.fusion, os, json
-P = json.loads(%r)   # parse, don't paste: JSON true/false/null are not Python literals
+P = json.loads(
+%s
+)   # parse, don't paste: JSON true/false/null are not Python literals
 KEEP_OPEN = bool(P["keep_open"])
 
 def run(_context: str):
@@ -187,7 +197,7 @@ def main():
              lip=LIP, base_h=BASE_H, cavity_floor=a.cavity_floor,
              out=os.path.abspath(a.out), stem=a.stem, name=a.name)
     print(Fusion().call("fusion_mcp_execute",
-        {"featureType": "script", "object": {"script": SCRIPT % json.dumps(P)}}))
+        {"featureType": "script", "object": {"script": SCRIPT % _chunk(json.dumps(P))}}))
 
 if __name__ == "__main__":
     main()
