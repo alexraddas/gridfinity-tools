@@ -118,12 +118,13 @@ def run(_context: str):
     o.isBinaryFormat=True
     em.execute(o)
     print("exported:",path,os.path.getsize(path),"bytes")
-    if not KEEP_OPEN:
-        _doc.close(False)   # scratch doc; artefacts are on disk
-        print("document closed")
     dxf=os.path.join(OUT,STEM+".dxf")
-    if sk.saveAsDXF(dxf): print("exported:",dxf,os.path.getsize(dxf),"bytes")
-    else: raise RuntimeError("DXF export failed")
+    if not sk.saveAsDXF(dxf): raise RuntimeError("DXF export failed")
+    if not os.path.exists(dxf): raise RuntimeError("DXF reported success but no file at "+dxf)
+    print("exported:",dxf,os.path.getsize(dxf),"bytes")
+    if not KEEP_OPEN:
+        _doc.close(False)   # close only after every export has landed
+        print("document closed")
 ''' % (json.dumps([[round(float(x),4),round(float(y),4)] for x,y in P]),
        name,outdir,float(height),float(slot_y),float(slot_len),float(slot_w),stem,keep_open)
     return Fusion().call("fusion_mcp_execute",{"featureType":"script","object":{"script":script}})
