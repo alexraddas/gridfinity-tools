@@ -49,3 +49,8 @@ MCP server enabled, plus numpy and OpenCV.
 ## Credits
 
 Gridfinity is by [Zack Freedman](https://www.youtube.com/@ZackFreedman).
+
+## License
+
+[MIT](LICENSE) — use, modify and redistribute freely, commercially or otherwise.
+Applies to both the models and the generation scripts.
