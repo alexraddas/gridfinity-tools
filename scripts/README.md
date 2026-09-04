@@ -23,6 +23,14 @@ A strict threshold seeds confident tool pixels; GrabCut then models the full col
 distributions and settles the boundary. Brightness alone does **not** work — polished
 steel is as bright as the tabletop, which is why b\* carries the load.
 
+The b\* background field is estimated with a max filter, which assumes the tool is
+*cooler* than the wood. A grip that is **warmer** than wood breaks that assumption:
+orange grips sit at b\* ≈ +38 against wood's ≈ +10, inflating the background estimate
+until ordinary wood reads as metal — which bridged the gap between the handles on
+IWISS IWD-12. Saturated pixels (chroma > 20) are therefore neutralised before the
+field is estimated, since the background being modelled is bare, near-neutral wood.
+Red grips (b\* ≈ +11) sit close enough to wood that they never triggered this.
+
 ## Requirements
 
 - `numpy`, `opencv-python`

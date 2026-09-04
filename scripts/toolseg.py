@@ -33,7 +33,15 @@ def _largest(m):
 def channels(sm):
     lab=cv2.cvtColor(cv2.bilateralFilter(sm,9,75,75),cv2.COLOR_BGR2LAB)
     L=lab[:,:,0].astype(np.float32);A=lab[:,:,1].astype(np.float32)-128;B=lab[:,:,2].astype(np.float32)-128
-    return (_bgfield(B,cv2.MORPH_CLOSE)-B,
+    # The b* background field uses a max filter, so a grip WARMER than the wood
+    # (orange sits at b*~+38 against wood's ~+10) inflates the estimate and makes
+    # ordinary wood look cool, i.e. metal. Neutralise saturated pixels first: the
+    # background we are modelling is bare wood, which is close to neutral.
+    chroma=np.hypot(A,B)
+    Bn=B.copy()
+    neutral=chroma<=20
+    if neutral.any(): Bn[~neutral]=float(np.median(B[neutral]))
+    return (_bgfield(Bn,cv2.MORPH_CLOSE)-B,
             A-_bgfield(A,cv2.MORPH_OPEN),
             _bgfield(L,cv2.MORPH_CLOSE)-L)
 
