@@ -179,6 +179,16 @@ def main():
         print("  ** WARNING: slot only %.1f mm wider than the tool -- little finger access **"%(slot_len-ow))
 
     np.save(f"outline_{a.name}.npy",off)
+    meta=dict(name=a.name,source=os.path.basename(a.image),
+              length_mm=a.length,width_mm=a.width,mirrored=bool(a.mirror),
+              depth_mm=a.height,offset_mm=a.offset,
+              outline_w=round(ow,3),outline_l=round(ol,3),
+              grid_units=[uw,ul],bin_mm=[uw*a.grid,ul*a.grid],
+              slot=dict(y=round(float(slot_y),3),width=a.slot_w,length=round(slot_len,3)),
+              outline=[[round(float(x),4),round(float(y),4)] for x,y in off])
+    os.makedirs(a.outdir,exist_ok=True)
+    json.dump(meta,open(os.path.join(a.outdir,"meta.json"),"w"),indent=1)
+    print("wrote",os.path.join(a.outdir,"meta.json"))
     if not a.no_build:
         print(build(a.name,off,a.height,slot_y,slot_len,a.slot_w,a.outdir))
 
