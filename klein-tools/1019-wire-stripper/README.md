@@ -1,9 +1,10 @@
-# Klein Tools — Wire stripper / crimper
+# Klein Tools 1019 — Wire stripper / crimper
 
 Source photo: `IMG_1810.jpeg`
 
 | | |
 |---|---|
+| Part number | 1019 |
 | Measured length | 196 mm |
 | Measured width | 55 mm |
 | Cutout depth | 20 mm |
@@ -18,5 +19,5 @@ Source photo: `IMG_1810.jpeg`
 ## Regenerate
 
 ```
-python3 ../../scripts/make_tool.py <photo> wire-stripper --length 196 --width 55 --mirror --outdir .
+python3 ../../scripts/make_tool.py <photo> klein-1019 --length 196 --width 55 --mirror --outdir .
 ```
