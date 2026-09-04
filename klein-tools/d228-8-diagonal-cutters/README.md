@@ -8,7 +8,7 @@ Source photo: `IMG_1804.jpeg` (two tools in frame; cropped to x < 2100 px — se
 | Measured length | 206 mm |
 | Measured width | 49 mm |
 | Cutout depth | 20 mm |
-| Bin size | 2x5 units (83.38 x 209.38 mm) |
+| Bin size | 2x6 units (83.38 x 251.38 mm) |
 | Clearance | 1.5 mm radial |
 
 ## Files

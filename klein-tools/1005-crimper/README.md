@@ -8,7 +8,7 @@ Source photo: `IMG_1805.jpeg`
 | Measured length | 246 mm |
 | Measured width | 51 mm |
 | Cutout depth | 20 mm |
-| Bin size | 2x6 units (83.38 x 251.38 mm) |
+| Bin size | 2x7 units (83.38 x 293.38 mm) |
 | Clearance | 1.5 mm radial |
 
 ## Files
