@@ -1,15 +1,16 @@
-# HSC8 6-4A — Self-adjusting ferrule crimper
+# Baomain HSC8 6-4A — Self-adjusting ferrule crimper
 
 Source photo: `IMG_1812.jpeg`
 
-HSC8 6-4A is a model designation sold by many vendors; no brand is marked on
-the tool. The body is plain black with only crimp-size marks on the hex die,
-so it is filed under `unbranded/` rather than guessing a manufacturer.
+HSC8 6-4A is a model designation sold by many vendors. Nothing is marked on
+the tool itself — the body is plain black with only crimp-size marks on the
+hex die — so the manufacturer is recorded from the owner rather than read off
+the tool.
 
 | | |
 |---|---|
 | Model | HSC8 6-4A |
-| Manufacturer | unknown / unbranded |
+| Manufacturer | Baomain |
 | Measured length | 171 mm |
 | Measured width | 81 mm at the handle ends (see note) |
 | Cutout depth | 20 mm |
