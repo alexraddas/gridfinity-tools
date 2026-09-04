@@ -19,7 +19,7 @@
  Slot position |---|---|
  Slot position | Pocket depth | 20 mm |
  Slot position | Clearance | 1.5 mm radial offset around the traced outline |
- Slot position | Finger slot | 25 mm wide, full depth, across the middle of the tool |
+ Slot position | Finger slot | 25 mm wide, full depth, across the widest point of the tool |
  Slot position | Slot length | `min(outline + 48 mm, bin width − 8 mm)` |
  Slot position | Grid | 42 mm; bin is the smallest multiple that fits |
  Slot position 

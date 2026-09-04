@@ -167,9 +167,10 @@ def main():
     print("largest internal gap: raw %.2f mm -> offset %.2f mm"%(gr,go))
     if gr>0.5 and go<0.5: print("  ** WARNING: offset closed an internal gap entirely **")
 
-    slot_y=a.slot_y
-    if slot_y is None:
-        slot_y=max(po,key=lambda r:r[1])[0]
+    # mid-length by default: the outline is centred on its bounding box, so 0
+    # is the middle of the tool. On short tools the widest point sits at the
+    # handle tips and the slot would overhang the end of the outline.
+    slot_y=0.0 if a.slot_y is None else a.slot_y
     ow=float(np.ptp(off[:,0])); ol=float(np.ptp(off[:,1]))
     # the tool must fit the lip opening (42n - 6.52), not the outer footprint
     fit=lambda d: int(np.ceil((d+BIN_CLR+2*LIP_IN)/a.grid))
