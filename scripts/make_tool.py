@@ -15,6 +15,7 @@ GRID     = 42.0   # gridfinity unit, mm
 GRID_M   = 8.0    # slot stops this far short of the bin width (4mm per side)
 BIN_CLR  = 0.62   # bin footprint = GRID*n - BIN_CLR
 LIP_IN   = 2.95   # lip narrows the opening by this much per side
+MARGIN   = 5.0    # minimum clearance per end between outline and lip opening
 USABLE   = lambda n, g=42.0: g*n - BIN_CLR - 2*LIP_IN
 OUTDIR   = "/Users/alexraddas/Desktop/tools/stl"
 
@@ -139,6 +140,8 @@ def main():
     ap.add_argument("--grid",type=float,default=GRID)
     ap.add_argument("--grid-margin",type=float,default=GRID_M)
     ap.add_argument("--units-w",type=int,default=None)
+    ap.add_argument("--units-l",type=int,default=None)
+    ap.add_argument("--margin",type=float,default=MARGIN,help="min mm per end (0 = pack tight)")
     ap.add_argument("--slot-y",type=float,default=None)
     ap.add_argument("--outdir",default=OUTDIR)
     ap.add_argument("--keep-open",action="store_true",help="leave the Fusion document open")
@@ -177,15 +180,16 @@ def main():
     slot_y=0.0 if a.slot_y is None else a.slot_y
     ow=float(np.ptp(off[:,0])); ol=float(np.ptp(off[:,1]))
     # the tool must fit the lip opening (42n - 6.52), not the outer footprint
-    fit=lambda d: int(np.ceil((d+BIN_CLR+2*LIP_IN)/a.grid))
+    fit=lambda d: int(np.ceil((d+2*a.margin+BIN_CLR+2*LIP_IN)/a.grid))
     uw=a.units_w or fit(ow)
-    ul=fit(ol)
+    ul=a.units_l or fit(ol)
     bin_w=uw*a.grid
     slot_len=min(ow+2*a.slot_over, bin_w-a.grid_margin)
     print("grid: needs %dx%d units (%.0f x %.0f mm) for outline %.2f x %.2f"%(uw,ul,bin_w,ul*a.grid,ow,ol))
     marg=(USABLE(ul,a.grid)-ol)/2
     print("  fits lip opening %.2f mm with %.2f mm per end"%(USABLE(ul,a.grid),marg))
     if marg<0: print("  ** ERROR: tool overhangs the lip by %.2f mm per end **"%(-marg))
+    elif marg<a.margin: print("  ** NOTE: %.2f mm per end is below the %.1f mm minimum (overridden) **"%(marg,a.margin))
     print("slot: y=%.2f  width %.1f  length %.1f mm (capped by %.0f mm bin - %.0f)"%(
         slot_y,a.slot_w,slot_len,bin_w,a.grid_margin))
     if slot_len < ow+8:

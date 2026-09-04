@@ -8,7 +8,7 @@ Source photo: `IMG_1810.jpeg`
 | Measured length | 196 mm |
 | Measured width | 55 mm |
 | Cutout depth | 20 mm |
-| Bin size | 2x5 units (83.38 x 209.38 mm) |
+| Bin size | 2x6 units (83.38 x 251.38 mm) |
 | Clearance | 1.5 mm radial |
 | Mirrored | yes — flipped relative to the source photo |
 
