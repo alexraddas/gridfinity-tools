@@ -22,12 +22,13 @@ LIP  = [(0.000, 0.00, 3.75), (1.909, 2.15, 1.60),
         (5.709, 2.95, 0.80), (7.459, 1.20, 2.55)]
 
 SCRIPT = r'''
-import adsk.core, adsk.fusion, os
-P = %s
+import adsk.core, adsk.fusion, os, json
+P = json.loads(%r)   # parse, don't paste: JSON true/false/null are not Python literals
+KEEP_OPEN = bool(P["keep_open"])
 
 def run(_context: str):
     app = adsk.core.Application.get()
-    app.documents.add(adsk.core.DocumentTypes.FusionDesignDocumentType)
+    _doc = app.documents.add(adsk.core.DocumentTypes.FusionDesignDocumentType)
     des = adsk.fusion.Design.cast(app.activeProduct)
     des.designType = adsk.fusion.DesignTypes.DirectDesignType
     des.unitsManager.distanceDisplayUnits = adsk.fusion.DistanceUnits.MillimeterDistanceUnits
@@ -159,6 +160,9 @@ def run(_context: str):
     o.isBinaryFormat = True
     em.execute(o)
     print("exported:", path, os.path.getsize(path), "bytes")
+    if not KEEP_OPEN:
+        _doc.close(False)   # scratch doc; artefacts are on disk
+        print("document closed")
 '''
 
 def main():
@@ -171,6 +175,7 @@ def main():
     ap.add_argument("--stem", default="bin")
     ap.add_argument("--name", default="bin")
     ap.add_argument("--meta", default=None, help="tool meta.json to subtract")
+    ap.add_argument("--keep-open", action="store_true", help="leave the Fusion document open")
     a = ap.parse_args()
     tool=None
     if a.meta:
@@ -178,7 +183,7 @@ def main():
         tool=dict(outline=m["outline"], depth=m["depth_mm"],
                   slot_y=m["slot"]["y"], slot_w=m["slot"]["width"], slot_len=m["slot"]["length"])
         if not a.nx: a.nx, a.ny = m["grid_units"]
-    P = dict(tool=tool, nx=a.nx, ny=a.ny, height=a.height, clear=CLEAR, cell=CELL, wall=WALL,
+    P = dict(keep_open=int(a.keep_open), tool=tool, nx=a.nx, ny=a.ny, height=a.height, clear=CLEAR, cell=CELL, wall=WALL,
              lip=LIP, base_h=BASE_H, cavity_floor=a.cavity_floor,
              out=os.path.abspath(a.out), stem=a.stem, name=a.name)
     print(Fusion().call("fusion_mcp_execute",

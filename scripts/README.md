@@ -49,3 +49,9 @@ steel is as bright as the tabletop, which is why b\* carries the load.
 | Slot length | `min(outline + 48, bin_width - 8)` |
 | Slot position | widest point of the outline |
 | Grid | 42 mm; bin = smallest multiple that fits the offset outline |
+
+## Fusion documents
+
+Both scripts create a scratch Fusion document, export, then close it. Pass
+`--keep-open` to leave it open for inspection. Without that they would pile up
+one document per run.

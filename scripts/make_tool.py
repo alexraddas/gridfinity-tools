@@ -49,15 +49,15 @@ def width_profile(P,res=8.0):
         rows.append(((r-1)/res+mn[1], (xs.max()-xs.min())/res, len(xs)/res))
     return rows   # (y, outer span, material)
 
-def build(name,P,height,slot_y,slot_len,slot_w,outdir,stem='cutout'):
+def build(name,P,height,slot_y,slot_len,slot_w,outdir,stem='cutout',keep_open=False):
     script='''
 import adsk.core, adsk.fusion, os
 PTS=%s
-NAME=%r; OUT=%r; H=%r; SY=%r; SLEN=%r; SW=%r; STEM=%r
+NAME=%r; OUT=%r; H=%r; SY=%r; SLEN=%r; SW=%r; STEM=%r; KEEP_OPEN=%r
 
 def run(_context: str):
     app=adsk.core.Application.get()
-    app.documents.add(adsk.core.DocumentTypes.FusionDesignDocumentType)
+    _doc = app.documents.add(adsk.core.DocumentTypes.FusionDesignDocumentType)
     des=adsk.fusion.Design.cast(app.activeProduct)
     des.designType=adsk.fusion.DesignTypes.DirectDesignType
     des.unitsManager.distanceDisplayUnits=adsk.fusion.DistanceUnits.MillimeterDistanceUnits
@@ -117,11 +117,14 @@ def run(_context: str):
     o.isBinaryFormat=True
     em.execute(o)
     print("exported:",path,os.path.getsize(path),"bytes")
+    if not KEEP_OPEN:
+        _doc.close(False)   # scratch doc; artefacts are on disk
+        print("document closed")
     dxf=os.path.join(OUT,STEM+".dxf")
     if sk.saveAsDXF(dxf): print("exported:",dxf,os.path.getsize(dxf),"bytes")
     else: raise RuntimeError("DXF export failed")
 ''' % (json.dumps([[round(float(x),4),round(float(y),4)] for x,y in P]),
-       name,outdir,float(height),float(slot_y),float(slot_len),float(slot_w),stem)
+       name,outdir,float(height),float(slot_y),float(slot_len),float(slot_w),stem,keep_open)
     return Fusion().call("fusion_mcp_execute",{"featureType":"script","object":{"script":script}})
 
 def main():
@@ -138,6 +141,7 @@ def main():
     ap.add_argument("--units-w",type=int,default=None)
     ap.add_argument("--slot-y",type=float,default=None)
     ap.add_argument("--outdir",default=OUTDIR)
+    ap.add_argument("--keep-open",action="store_true",help="leave the Fusion document open")
     ap.add_argument("--mirror",action="store_true",help="mirror across the long axis")
     ap.add_argument("--no-build",action="store_true")
     a=ap.parse_args()
@@ -199,6 +203,6 @@ def main():
     json.dump(meta,open(os.path.join(a.outdir,"meta.json"),"w"),indent=1)
     print("wrote",os.path.join(a.outdir,"meta.json"))
     if not a.no_build:
-        print(build(a.name,off,a.height,slot_y,slot_len,a.slot_w,a.outdir))
+        print(build(a.name,off,a.height,slot_y,slot_len,a.slot_w,a.outdir,keep_open=a.keep_open))
 
 if __name__=="__main__": main()
