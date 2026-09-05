@@ -22,10 +22,19 @@ of the measurement.
 the loops open would have meant two thin 20 mm posts standing up through them —
 fragile, and the scissors would have to be lifted straight up to clear them.
 
+**Luminance thresholds are lowered for this tool** (`--dl-strict 50
+--dl-mid 35`, against defaults of 85/80). The defaults were tuned for dark
+tools on wood. Bare steel on a pale backdrop is far lower contrast: measured
+across the blade, the tool sits at dL 43-60 where the backdrop is 16-27 —
+clearly separable, but well under the default threshold. At the defaults the
+contour ran down the middle of the blade, following the dark line between the
+two halves and cutting off the bright sharpened bevel, losing roughly a third
+of the blade width.
+
 An earlier photograph, `IMG_1828.jpeg`, was taken on a dark laptop lid. That
 inverts the luminance test — the polished blades are *brighter* than the
 backdrop — and only the red handles were traced. Shoot metal tools on a light
-backdrop.
+backdrop and lower the thresholds instead.
 
 ## Files
 

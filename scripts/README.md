@@ -69,6 +69,16 @@ cannot help when the tool runs to the very edge of the sheet.
   plank can bridge into the tool. Roughly a tool-width of wood each side works.
 - Include a ruler if you can; otherwise measure length and max width by hand.
 
+## Low-contrast tools
+
+The default luminance thresholds (85/80) suit dark tools on wood. **Bare or
+polished steel on a pale backdrop is much lower contrast** and needs them
+lowered — `--dl-strict 50 --dl-mid 35` for the Milwaukee scissors. Symptom: the
+contour runs *inside* the tool, following an internal dark line and shaving off
+a bright edge, rather than failing outright. Check the trace overlay against
+the real outline; the aspect ratio can look fine while a third of a blade is
+missing.
+
 ## Measuring length
 
 By default `length` is the tool's bounding extent along its long axis. On a
