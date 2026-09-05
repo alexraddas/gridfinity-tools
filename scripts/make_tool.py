@@ -156,6 +156,9 @@ def main():
     ap.add_argument("--slot-y",type=float,default=None)
     ap.add_argument("--outdir",default=OUTDIR)
     ap.add_argument("--keep-open",action="store_true",help="leave the Fusion document open")
+    ap.add_argument("--length-mode",choices=("rect","tip"),default="rect",
+                    help="rect: length is the bounding extent (default). tip: length is the\n"
+                         "max tip-to-tip distance, for bent tools such as scissors")
     ap.add_argument("--mirror",action="store_true",help="mirror across the long axis")
     ap.add_argument("--no-build",action="store_true")
     a=ap.parse_args()
@@ -170,6 +173,15 @@ def main():
         if abs(err)>4: print("  ** WARNING: aspect mismatch >4%%, check the trace overlay **")
 
     raw,_=to_mm(c.reshape(-1,2).astype(np.float64),a.length)
+    if a.length_mode=="tip":
+        # "length" was measured tip-to-tip, not as a bounding extent. On a bent
+        # tool (scissors with offset handles) the two differ by several percent.
+        hull=cv2.convexHull(raw.astype(np.float32)).reshape(-1,2).astype(np.float64)
+        diam=max(np.hypot(*(hull-p).T).max() for p in hull)
+        k=a.length/diam
+        raw*=k
+        print("length mode 'tip': rescaled by %.4f (bounding %.2f -> tip-to-tip %.2f mm)"%(
+            k,np.ptp(raw[:,1])/k,a.length))
     off=polish(offset_polygon(raw,a.offset,res=40.0))
     if a.mirror:
         off=off[::-1].copy(); off[:,0]*=-1            # mirror across the long axis

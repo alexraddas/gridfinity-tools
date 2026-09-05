@@ -69,6 +69,14 @@ cannot help when the tool runs to the very edge of the sheet.
   plank can bridge into the tool. Roughly a tool-width of wood each side works.
 - Include a ruler if you can; otherwise measure length and max width by hand.
 
+## Measuring length
+
+By default `length` is the tool's bounding extent along its long axis. On a
+bent tool -- offset scissors -- the blade-tip-to-handle-tip distance is longer
+than that, by 4.2% on the Milwaukee 48-22-4047. Pass `--length-mode tip` when
+the figure was taken tip-to-tip. For straight tools the two agree to within
+half a percent and the flag makes no difference.
+
 ## Conventions
 
 | | |
