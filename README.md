@@ -7,7 +7,9 @@
  Slot position 
  Slot position ## Layout
  Slot position 
- Slot position     <manufacturer>/<tool>/
+ Slot position     photos/                   source photographs, one per tool
+    scripts/                  trace + generate pipeline
+    <manufacturer>/<tool>/
  Slot position         cutout.stl    tool-shaped cutting body, 20 mm deep
  Slot position         cutout.dxf    2D outline, millimetres
  Slot position         bin.stl       finished gridfinity container

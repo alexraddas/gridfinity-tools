@@ -3,11 +3,11 @@
 # MCP server. Run from the repository root:  bash scripts/build-all.sh
 set -euo pipefail
 S="$(cd "$(dirname "$0")" && pwd)"
-PHOTOS="${PHOTOS:-$HOME/Desktop/tools}"
+PHOTOS="${PHOTOS:-$S/../photos}"
 
 # dir | photo | name | length | width | extra flags
 TOOLS=(
-"klein-tools/d228-8-diagonal-cutters|$S/../photos/IMG_1804_crop_d228-8.jpg|klein-d228-8|206|49|"
+"klein-tools/d228-8-diagonal-cutters|$PHOTOS/IMG_1804_crop_d228-8.jpg|klein-d228-8|206|49|"
 "klein-tools/1005-crimper|$PHOTOS/IMG_1805.jpeg|klein-1005|246|51|"
 "klein-tools/1019-wire-stripper|$PHOTOS/IMG_1810.jpeg|klein-1019|196|55|--mirror"
 "klein-tools/d2755-flush-cutter|$PHOTOS/IMG_1814.jpeg|klein-d2755|131|81|"
