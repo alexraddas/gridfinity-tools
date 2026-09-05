@@ -30,6 +30,29 @@ def _largest(m):
     if n<2: raise RuntimeError("empty mask")
     return (lbl==max(range(1,n),key=lambda i:st[i][4])).astype(np.uint8)*255
 
+def backdrop_roi(sm, erode=9):
+    """Mask of the shooting backdrop (sheet of paper, benchtop).
+
+    A photo whose backdrop does not fill the frame leaves darker surroundings --
+    carpet, a bag, a box -- which the darkness channel calls "tool", so the
+    largest component ends up being the surround. Restricting the search to the
+    backdrop fixes that. When the backdrop already fills the frame this returns
+    all-ones and changes nothing.
+    """
+    L=cv2.cvtColor(sm,cv2.COLOR_BGR2LAB)[:,:,0]
+    h,w=L.shape
+    thr,_=cv2.threshold(cv2.GaussianBlur(L,(0,0),3),0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+    m=(L>thr).astype(np.uint8)*255
+    m=cv2.morphologyEx(m,cv2.MORPH_CLOSE,K(31))
+    m=cv2.morphologyEx(m,cv2.MORPH_OPEN,K(31))
+    n,lbl,st,_=cv2.connectedComponentsWithStats(m,8)
+    if n<2: return np.full((h,w),255,np.uint8)
+    i=max(range(1,n),key=lambda j:st[j][4])
+    if st[i][4] < 0.25*h*w: return np.full((h,w),255,np.uint8)
+    roi=fill_holes((lbl==i).astype(np.uint8)*255)   # the tool is a hole in the backdrop
+    if erode: roi=cv2.erode(roi,K(erode))
+    return roi
+
 def channels(sm):
     lab=cv2.cvtColor(cv2.bilateralFilter(sm,9,75,75),cv2.COLOR_BGR2LAB)
     L=lab[:,:,0].astype(np.float32);A=lab[:,:,1].astype(np.float32)-128;B=lab[:,:,2].astype(np.float32)-128
@@ -52,9 +75,11 @@ def segment(SRC, work=1400, iters=6, shrink=5,
     sm=cv2.resize(img,(int(W0*s),int(H0*s)),interpolation=cv2.INTER_AREA)
     h,w=sm.shape[:2]
     dB,dA,dL=channels(sm)
+    roi=backdrop_roi(sm)
 
     def band(t,op,cl):
         m=(((dB>t[0])|(dA>t[1])|(dL>t[2])).astype(np.uint8))*255
+        m=cv2.bitwise_and(m,roi)          # never look outside the backdrop
         m=cv2.morphologyEx(m,cv2.MORPH_OPEN,K(op))
         m=cv2.morphologyEx(m,cv2.MORPH_CLOSE,K(cl))
         m[:6,:]=0;m[-6:,:]=0;m[:,:6]=0;m[:,-6:]=0
@@ -72,6 +97,7 @@ def segment(SRC, work=1400, iters=6, shrink=5,
     cv2.grabCut(sm,gm,None,np.zeros((1,65),np.float64),np.zeros((1,65),np.float64),
                 iters,cv2.GC_INIT_WITH_MASK)
     m=(((gm==cv2.GC_FGD)|(gm==cv2.GC_PR_FGD)).astype(np.uint8))*255
+    m=cv2.bitwise_and(m,roi)
 
     m=cv2.morphologyEx(m,cv2.MORPH_OPEN,K(9))
     m=fill_holes(_largest(m))

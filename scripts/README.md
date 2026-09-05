@@ -39,6 +39,18 @@ Red grips (b\* ≈ +11) sit close enough to wood that they never triggered this.
   *and* the `initialized` notification must follow `initialize`, or `tools/list`
   returns empty)
 
+## Backdrops
+
+Wood and white paper both work. On wood the b\* channel does the heavy lifting
+(wood is warm, metal is cool); on white paper b\* is near-neutral and darkness
+carries it instead.
+
+**The backdrop must be uncluttered, and the tool must sit well inside it.** A
+sheet that does not fill the frame leaves carpet, bags and boxes around it,
+which the darkness channel calls "tool" -- one photo traced the entire image
+border. `backdrop_roi()` finds the sheet and confines the search to it, but it
+cannot help when the tool runs to the very edge of the sheet.
+
 ## Photographing a tool
 
 - Shoot straight down, tool flat, whole tool in frame.
