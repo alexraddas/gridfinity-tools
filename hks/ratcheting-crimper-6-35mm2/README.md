@@ -11,7 +11,7 @@ this folder is named for.
 | Part number | none found |
 | Die range | 6–35 mm² |
 | Measured length | 235 mm |
-| Measured width | 80 mm (see note) |
+| Measured width | 79 mm across the red grip flares |
 | Traced (raw) | 234.89 x 75.07 mm |
 | Cutout depth | 20 mm |
 | Bin size | 3x7 units (125.38 x 293.38 mm) |
@@ -25,11 +25,17 @@ body is cool. Neither the darkness nor the warm/cool channel could separate
 them, so the shadow was traced as part of the tool and the handle ends came out
 angled. The reshoot on white paper has no such shadow and traces cleanly.
 
-**Note on width:** the trace gives 75.1 mm when scaled to the 235 mm length,
-against 80 mm measured — 5.0% apart. Two independent photos agree with each
-other (3.109 and 3.085 aspect) and disagree with the caliper, so the
-measurement is the more likely culprit. The widest point of the trace is the
-rigid black body, not the handles. Worth re-measuring across the body.
+**Note on width:** the widest point is the pair of pointed red flares where the
+grips meet the body — not the black body and not the handle tips. The trace
+follows them faithfully and gives 76.1 mm when scaled to the 235 mm length,
+against 79 mm measured, an aspect agreement of 3.7%.
+
+The residual difference is handle position. The flares sit just below the
+pivot, so they swing outward as the handles open. This photo has the handles
+closed, which is the narrow extreme; the earlier wood photo had them spread and
+traced slightly wider (384 px against 368 px on a comparable length). If the
+tool is stored with its handles relaxed rather than squeezed shut, reshoot in
+that position and rebuild.
 
 ## Files
 
