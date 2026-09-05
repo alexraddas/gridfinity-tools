@@ -54,6 +54,10 @@ cannot help when the tool runs to the very edge of the sheet.
 ## Photographing a tool
 
 - Shoot straight down, tool flat, whole tool in frame.
+- **Avoid hard directional light.** A sharp cast shadow beside a tool can be
+  darker than the tool itself (measured L=11 against a black body's L=28) and
+  neutral in hue where the body is cool, so neither the darkness nor the
+  warm/cool channel can reject it. Diffuse light, or none.
 - Leave a wide margin of bare wood on all sides. Too tight and the background
   estimate starves — this mangles jaws and dark heads. Too wide and a differently-lit
   plank can bridge into the tool. Roughly a tool-width of wood each side works.
