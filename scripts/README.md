@@ -41,6 +41,12 @@ Red grips (b\* ≈ +11) sit close enough to wood that they never triggered this.
 
 ## Backdrops
 
+Backdrop polarity is detected per image: tools are normally darker than the
+backdrop, but a bright tool on a dark one (polished blades on a grey desk)
+flips the sign of the luminance test. Taking the max of both directions is
+*not* safe -- it over-triggers badly on light backdrops -- so the direction is
+chosen once per image from the backdrop's own brightness.
+
 Wood and white paper both work. On wood the b\* channel does the heavy lifting
 (wood is warm, metal is cool); on white paper b\* is near-neutral and darkness
 carries it instead.

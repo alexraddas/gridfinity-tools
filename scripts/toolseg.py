@@ -64,9 +64,18 @@ def channels(sm):
     Bn=B.copy()
     neutral=chroma<=20
     if neutral.any(): Bn[~neutral]=float(np.median(B[neutral]))
+    # Luminance contrast, in whichever direction the backdrop demands. Tools are
+    # normally darker than the backdrop (close(L)-L); on a dark backdrop, such as
+    # polished blades on a grey desk, the sign flips (L-open(L)). Taking max() of
+    # both is NOT safe -- it over-triggers badly on light backdrops -- so the
+    # polarity is decided once per image from the backdrop's own brightness.
+    if float(np.median(L)) < 128.0:
+        dL = L-_bgfield(L,cv2.MORPH_OPEN)      # bright tool on a dark backdrop
+    else:
+        dL = _bgfield(L,cv2.MORPH_CLOSE)-L     # dark tool on a light backdrop
     return (_bgfield(Bn,cv2.MORPH_CLOSE)-B,
             A-_bgfield(A,cv2.MORPH_OPEN),
-            _bgfield(L,cv2.MORPH_CLOSE)-L)
+            dL)
 
 def segment(SRC, work=1400, iters=6, shrink=5,
             strict=(18,22,85), mid=(7.5,12,80), dbg=None):

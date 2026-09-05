@@ -17,6 +17,7 @@ TOOLS=(
 "baomain/hsc8-6-4a-ferrule-crimper|$PHOTOS/IMG_1812.jpeg|hsc8-6-4a|171|81|"
 "iwiss/iwd-12-deutsch-crimper|$PHOTOS/IMG_1824.jpeg|iwiss-iwd-12|160|103|"
 "heschen/hs-07fl-crimper|$PHOTOS/IMG_1822.jpeg|hs-07fl|226|71|--units-w 2"
+"pressmaster/krb-0560-crimper|$PHOTOS/IMG_1826.jpeg|pressmaster-krb-0560|253|73|"
 )
 
 for t in "${TOOLS[@]}"; do
