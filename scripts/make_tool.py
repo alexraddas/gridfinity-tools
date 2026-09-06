@@ -42,6 +42,31 @@ def offset_polygon(P, delta, res=20.0):
     c=max(cs,key=cv2.contourArea).reshape(-1,2).astype(np.float64)
     return c/res+mn
 
+def symmetrise(P, res=40.0):
+    """Union the outline with its mirror about the long axis.
+
+    A plier or cutter head is 180-degree rotationally symmetric, not mirror
+    symmetric: the heel of the upper jaw sticks out on one side and the lower
+    jaw's on the other. A pocket cut from one photographed face therefore
+    rejects the tool when it is laid in the other way up -- measured 2.73 mm of
+    interference over 38 of 134 vertices on the Doyle cutters, which reads as a
+    jammed head at one corner and an empty crescent at the opposite one.
+    Unioning the silhouette with its mirror makes the pocket accept either face.
+    Costs slop wherever the two disagree, and nothing in bin size: the outline
+    is centred on its bounding box, so mirroring cannot widen it.
+    """
+    P=P-[(P[:,0].max()+P[:,0].min())/2, 0.0]
+    M=P.copy(); M[:,0]*=-1
+    pad=3.0
+    mn=np.minimum(P.min(0),M.min(0))-pad; mx=np.maximum(P.max(0),M.max(0))+pad
+    size=((mx-mn)*res).astype(int)+1
+    img=np.zeros((size[1],size[0]),np.uint8)
+    cv2.fillPoly(img,[((P-mn)*res).astype(np.int32)],255)
+    cv2.fillPoly(img,[((M-mn)*res).astype(np.int32)],255)
+    cs,_=cv2.findContours(img,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
+    c=max(cs,key=cv2.contourArea).reshape(-1,2).astype(np.float64)
+    return c/res+mn
+
 def polish(P,n=520,win=5,simplify=0.06):
     P=smooth(resample(P,n*3),win)
     P=resample(P,n)
@@ -165,6 +190,9 @@ def main():
                     help="rect: length is the bounding extent (default). tip: length is the\n"
                          "max tip-to-tip distance, for bent tools such as scissors")
     ap.add_argument("--mirror",action="store_true",help="mirror across the long axis")
+    ap.add_argument("--symmetric",action="store_true",
+                    help="union the outline with its mirror, so the pocket takes the\n"
+                         "tool either face up. Use on any tool with crossed jaws")
     ap.add_argument("--no-build",action="store_true")
     a=ap.parse_args()
     a.outdir=os.path.abspath(a.outdir)
@@ -188,13 +216,23 @@ def main():
         raw*=k
         print("length mode 'tip': rescaled by %.4f (bounding %.2f -> tip-to-tip %.2f mm)"%(
             k,np.ptp(raw[:,1])/k,a.length))
+    if a.symmetric:
+        sym=symmetrise(raw)
+        print("symmetric: unioned with its mirror -> %.2f x %.2f mm (+%.2f mm area)"%(
+            np.ptp(sym[:,0]),np.ptp(sym[:,1]),cv2.contourArea(sym.astype(np.float32))
+            -cv2.contourArea(raw.astype(np.float32))))
+        raw=sym
     off=polish(offset_polygon(raw,a.offset,res=40.0))
     if a.mirror:
         off=off[::-1].copy(); off[:,0]*=-1            # mirror across the long axis
         print("mirrored across the long axis")
     # centre on the bounding box in both axes. Centring on the centroid instead
     # shifts an asymmetric tool toward its heavy end and overhangs the bin.
-    off-= [ (off[:,0].max()+off[:,0].min())/2, (off[:,1].max()+off[:,1].min())/2 ]
+    ctr=[ (off[:,0].max()+off[:,0].min())/2, (off[:,1].max()+off[:,1].min())/2 ]
+    off-=ctr
+    if a.mirror:
+        raw=raw[::-1].copy(); raw[:,0]*=-1     # keep raw in step with off
+    raw-=ctr                                   # same datum, so the two overlay
     print("outline  raw %.2f x %.2f mm   offset+%.1f -> %.2f x %.2f mm"%(
         np.ptp(raw[:,0]),np.ptp(raw[:,1]),a.offset,np.ptp(off[:,0]),np.ptp(off[:,1])))
 
@@ -232,7 +270,10 @@ def main():
               outline_w=round(ow,3),outline_l=round(ol,3),
               grid_units=[uw,ul],bin_mm=[uw*a.grid,ul*a.grid],
               slot=dict(y=round(float(slot_y),3),width=a.slot_w,length=round(slot_len,3)),
-              outline=[[round(float(x),4),round(float(y),4)] for x,y in off])
+              outline=[[round(float(x),4),round(float(y),4)] for x,y in off],
+              # the traced silhouette itself, before the clearance offset. The
+              # validation sheet draws this one: it is what you lay the tool on.
+              outline_raw=[[round(float(x),4),round(float(y),4)] for x,y in raw])
     os.makedirs(a.outdir,exist_ok=True)
     json.dump(meta,open(os.path.join(a.outdir,"meta.json"),"w"),indent=1)
     print("wrote",os.path.join(a.outdir,"meta.json"))

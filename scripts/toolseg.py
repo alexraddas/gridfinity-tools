@@ -77,7 +77,7 @@ def channels(sm):
             A-_bgfield(A,cv2.MORPH_OPEN),
             dL)
 
-def segment(SRC, work=1400, iters=6, shrink=5,
+def segment(SRC, work=1400, iters=6, shrink=0,
             strict=(18,22,85), mid=(7.5,12,80), dbg=None):
     img=cv2.imread(SRC,cv2.IMREAD_COLOR)
     H0,W0=img.shape[:2]; s=float(work)/max(H0,W0)
@@ -110,6 +110,14 @@ def segment(SRC, work=1400, iters=6, shrink=5,
 
     m=cv2.morphologyEx(m,cv2.MORPH_OPEN,K(9))
     m=fill_holes(_largest(m))
+    # `shrink` erodes the settled mask; it used to default to 5, an ellipse of
+    # radius 2 px. Measured against the photograph rather than by eye -- b*
+    # profiles sampled along the outward normal at 600 contour points, at full
+    # sensor resolution, locating the 50% transition -- shrink=5 sits a median
+    # 0.5 to 2.2 px INSIDE the true edge depending on the photo (2.2 px, i.e.
+    # 0.38 mm, on IMG_1812). shrink=0 sits within +-1.1 px of it, and errs
+    # outside rather than inside. Inward bias is the one that costs a fit, so
+    # the default is 0; the parameter stays for a photo with a real GrabCut halo.
     if shrink: m=cv2.erode(m,K(shrink))
     m=cv2.morphologyEx(m,cv2.MORPH_CLOSE,K(9))
     m=fill_holes(m)
