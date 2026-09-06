@@ -1,4 +1,4 @@
-# klein-tools-d203-8ncr
+# Klein Tools D203-8NCR — Long-nose side-cutting pliers
 
 Generated automatically from a submitted photograph ([#1](../../issues/1)). Nobody has written notes on this tool yet, so treat anything unusual about it as undocumented rather than absent.
 

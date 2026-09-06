@@ -19,24 +19,26 @@ Milwaukee, IWISS, Pressmaster, Knipex-style ferrule crimper, 42 mm grid.
 
 ## Tools in this repository
 
-Thirteen tools, all built and verified. Bin size is in Gridfinity units
-(1 unit = 42 mm).
+<!-- tool-index:begin -->
+Fourteen tools, all built and verified. Bin size is in Gridfinity units (1 unit = 42 mm).
 
 | Tool | Type | Size (mm) | Bin |
 |---|---|---|---|
-| [Baomain HSC8 6-4A](baomain/hsc8-6-4a-ferrule-crimper) | Self-adjusting ferrule crimper | 174 × 81 | 3×5 |
-| [Doyle cable cutters](doyle/cable-cutters) | Cable cutters | 240 × 51 | 2×7 |
-| [Heschen HS-07FL](heschen/hs-07fl-crimper) | Crimper | 226 × 71 | 2×6 |
-| [HKS ratcheting crimper](hks/ratcheting-crimper-6-35mm2) | Ratcheting crimper, 6–35 mm² | 235 × 79 | 3×7 |
-| [IWISS IWD-12](iwiss/iwd-12-deutsch-crimper) | Deutsch connector crimper | 160 × 103 | 3×5 |
-| [Klein Tools 1005](klein-tools/1005-crimper) | Crimper / cutter | 246 × 51 | 2×7 |
-| [Klein Tools 1019](klein-tools/1019-wire-stripper) | Wire stripper, multi-tool | 196 × 55 | 2×6 |
+| [Baomain HSC8 6-4A](baomain/hsc8-6-4a-ferrule-crimper) | Self-adjusting ferrule crimper | 174 × 75 | 3×5 |
+| [Doyle](doyle/cable-cutters) | Cable cutters | 240 × 51 | 2×7 |
+| [Heschen HS-07FL](heschen/hs-07fl-crimper) | Ratcheting crimper, 0.25–2.5 mm² | 226 × 69 | 2×6 |
+| [HKS](hks/ratcheting-crimper-6-35mm2) | Ratcheting crimper, 6–35 mm² | 235 × 76 | 3×7 |
+| [IWISS IWD-12](iwiss/iwd-12-deutsch-crimper) | Deutsch terminal crimper | 160 × 101 | 3×5 |
+| [Klein Tools 1005](klein-tools/1005-crimper) | Wire crimper / cutter | 246 × 52 | 2×7 |
+| [Klein Tools 1019](klein-tools/1019-wire-stripper) | Wire stripper / crimper | 196 × 55 | 2×6 |
+| [Klein Tools D203-8NCR](klein-tools/d203-8ncr) | Long-nose side-cutting pliers | 214 × 51 | 2×6 |
 | [Klein Tools D228-8](klein-tools/d228-8-diagonal-cutters) | Diagonal cutters | 206 × 49 | 2×6 |
-| [Klein Tools D275-5](klein-tools/d2755-flush-cutter) | Flush cutter | 131 × 81 | 3×4 |
-| [Milwaukee 48-22-3079](milwaukee/48-22-3079-wire-stripper) | 6-in-1 wire stripper | 196 × 54 | 2×5 |
-| [Milwaukee 48-22-4047](milwaukee/48-22-4047-scissors) | Offset electrician's scissors | 253 × 96 | 3×7 |
-| [Pressmaster KRB 0560](pressmaster/krb-0560-crimper) | Crimper | 253 × 73 | 3×7 |
-| [Tool Aid 18880](tool-aid/18880-deutsch-crimper) | Deutsch connector crimper | 155 × 103 | 3×4 |
+| [Klein Tools D2755](klein-tools/d2755-flush-cutter) | Flush cutter | 131 × 87 | 3×4 |
+| [Milwaukee 48-22-3079](milwaukee/48-22-3079-wire-stripper) | 6-in-1 wire stripper | 196 × 53 | 2×5 |
+| [Milwaukee 48-22-4047](milwaukee/48-22-4047-scissors) | Offset scissors | 243 × 95 | 3×7 |
+| [Pressmaster KRB 0560](pressmaster/krb-0560-crimper) | Ratcheting crimper | 253 × 72 | 3×7 |
+| [Tool Aid 18880](tool-aid/18880-deutsch-crimper) | Deutsch terminal crimper | 155 × 103 | 3×4 |
+<!-- tool-index:end -->
 
 ## What each folder contains
 
