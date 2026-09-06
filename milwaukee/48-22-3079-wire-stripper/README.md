@@ -12,15 +12,16 @@ Source photo: `IMG_48-22-3079.jpeg`
 | Bin size | 2x5 units (83.38 x 209.38 mm) |
 | Clearance | 1.5 mm radial |
 
-**Symmetric pocket.** The jaws cross, so the silhouette is 180-degree
-rotationally symmetric rather than mirror symmetric, and a pocket cut from the
-photographed face rejects the tool laid in the other way up -- measured 39 of
-119 vertices fouling, worst case 4.70 mm, spread over nearly the full length
-because the handles splay unevenly. Built with `--symmetric`; both orientations
-now clear by at least 1.37 mm. Costs 634 mm2 of pocket area and nothing in bin
-size.
+**Single-face pocket, on purpose.** The jaws cross, so the silhouette is
+180-degree rotationally symmetric rather than mirror symmetric: laid in the
+other way up the tool fouls this pocket at 39 of 119 vertices, worst case
+4.70 mm, spread over nearly the full length because the handles splay unevenly.
+A `--symmetric` build was tried and reverted -- unioning the two silhouettes
+cost 647 mm2 of pocket area (+10.4%) and up to 5.96 mm of local slop where they
+disagree, which is a poor trade for a tool that only ever goes in one way.
+**This one has a right way up.**
 
-**Packed to 2x5, not the 2x6 the grid rule picks.** The 198.89 mm outline
+**Packed to 2x5, not the 2x6 the grid rule picks.** The 198.85 mm outline
 clears the 2x5 lip opening (203.48 mm) by 2.29 mm per end, under the 5 mm
 minimum, so `--units-l 5` overrides it. 2x6 leaves 23 mm of dead bin at each
 end for no benefit.
@@ -38,7 +39,7 @@ the a\* channel fire hard against the near-neutral countertop. The polished
 nose bevel traces correctly at the defaults.
 
 **The handle gap stays open.** The 24.88 mm slot between the grips survives
-the 1.5 mm offset at 22.12 mm, leaving a 20 mm-tall island of material in the
+the 1.5 mm offset at 22.16 mm, leaving a 20 mm-tall island of material in the
 pocket. Wide enough to print without support.
 
 ## Files
@@ -51,6 +52,6 @@ pocket. Wide enough to print without support.
 ## Regenerate
 
 ```
-python3 ../../scripts/make_tool.py <photo> milwaukee-48-22-3079 --length 196 --width 54 --units-l 5 --symmetric --outdir .
+python3 ../../scripts/make_tool.py <photo> milwaukee-48-22-3079 --length 196 --width 54 --units-l 5 --outdir .
 python3 ../../scripts/make_bin.py --meta meta.json --out . --stem bin
 ```

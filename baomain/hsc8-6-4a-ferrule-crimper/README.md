@@ -19,27 +19,26 @@ the tool.
 | Bin size | 3x5 units (125.38 x 209.38 mm) |
 | Clearance | 2.0 mm radial (the repo default is 1.5) |
 
-**The pocket is symmetric, and has to be.** The frame of this crimper is a
-single plate carrying the fixed handle; the moving handle is a separate lever
-riveted on one face, and it stands proud of the frame in plan view. Laid in
-the other face up the tool presents the mirror of the photographed silhouette,
-which fouled the previous pocket at **50 of 106 vertices, worst case 4.98 mm** —
-spread over all four regions of the outline (head 10/28, body 16/38, upper
-handles 6/12, handle tips 18/28), not concentrated at one corner. That is
-enough interference that the tool cannot enter at all; it sits proud and rocks.
-Built with `--symmetric`, which unions the outline with its mirror before the
-offset. Both faces now clear by at least 1.86 mm. It costs 950 mm2 of extra
-pocket area, nothing in bin size, and — measured — nothing in location: the
-tool's free play inside the pocket is +-1.9 mm in both axes whether the pocket
-is symmetric or not, because the union adds material only where the pocket was
-already slack.
+**Single-face pocket: this one has a right way up.** The frame is a single
+plate carrying the fixed handle; the moving handle is a separate lever riveted
+on one face, and it stands proud of the frame in plan view. Laid in the other
+face up the tool presents the mirror of the photographed silhouette, which
+fouls the pocket at 50 of 106 vertices, worst case 4.98 mm, spread over all
+four regions of the outline rather than concentrated at one corner. It will not
+enter that way round.
 
-About half of that mirror mismatch is not a real 3D feature but a 3.25-degree
-skew: because only one handle moves and it sat squeezed, the silhouette's
+A `--symmetric` build was tried and reverted. Unioning the two silhouettes cost
+987 mm2 of pocket area (+11.8%) and up to 6.63 mm of local slop where they
+disagree. Note this is not really a crossed-jaw tool -- the hex die closes
+concentrically -- so the union was buying two-way insertion on a tool that has
+an obvious right way up, at the price of a looser pocket everywhere the lever
+sits.
+
+About half of that mirror mismatch is not a real 3D feature but a skew: because
+only one handle moves and it sat squeezed in the photo, the silhouette's
 minimum-area-rectangle axis is tilted about 1.6 degrees off the tool's own
-symmetry axis. Rotating the mirrored silhouette by 3.25 degrees recovers the
-interference from 4.98 mm to 2.09 mm. The pocket cannot rotate, so the full
-4.98 mm is what the tool would have met.
+symmetry axis, and rotating the mirrored silhouette by 3.25 degrees recovers
+4.98 mm down to 2.09 mm.
 
 **Clearance is 2.0 mm here, not the repo's usual 1.5.** The extra 0.5 mm pays
 for a scale error that cannot be removed without a reshoot. The handles are
@@ -82,6 +81,6 @@ it rather than the number.
 
 ```
 python3 ../../scripts/make_tool.py <photo> hsc8-6-4a --length 171 --width 81 \
-    --symmetric --offset 2.0 --outdir .
+    --offset 2.0 --outdir .
 python3 ../../scripts/make_bin.py --meta meta.json --out . --stem bin
 ```
