@@ -13,10 +13,10 @@ rather than read off the tool.
 | Measured length | 174 mm |
 | Measured width | 81 mm at the handle ends (see note) |
 | Traced (raw) | 173.90 x 74.81 mm |
-| Pocket | 177.82 x 78.71 mm |
+| Pocket | 176.81 x 77.67 mm |
 | Cutout depth | 20 mm |
 | Bin size | 3x5 units (125.38 x 209.38 mm) |
-| Clearance | 2.0 mm radial (the repo default is 1.5) |
+| Clearance | 1.5 mm radial (the repo default) |
 
 **Shot on the label face, which is the fix for a mirrored pocket.** The previous
 photo, `IMG_1812.jpeg`, showed the *reverse* face — no "HSC8 6-4A" stamping, and
@@ -43,14 +43,16 @@ consistent; either the tool rests narrower than 81 mm or the 81 mm was taken
 with the grips pushed apart. **Print `outline_sheet.pdf` and lay the tool on it
 before printing a bin** — that settles it in a way no amount of arithmetic can.
 
-**Clearance is 2.0 mm rather than the repo's 1.5, and may no longer be needed.**
-The 2.0 was introduced to pay for a scale error inferred from the *old* photo
-and an assumed 171 mm length: the squeezed pose made the photographed tool
-172.4–173.6 mm long, so scaling that to 171 mm shrank the whole model by
-0.8–1.5%. With the length corrected to 174 mm and a fresh photograph, that
-justification is largely gone — but nothing has yet confirmed the new scale is
-right, so it stays at 2.0. Drop it to the 1.5 mm default once the paper sheet
-shows the outline matching the tool.
+**Back on the standard 1.5 mm clearance; the 2.0 mm was chasing a measuring
+error.** The exception existed to pay for an apparent 0.8-1.5% scale error: the
+photographed tool measured 172.4-173.6 mm against an assumed 171 mm length, so
+scaling it to 171 mm shrank the model. The length was simply wrong -- it is
+174 mm -- and with that corrected there is no scale error to pay for. The 2.0 mm
+version was printed and came out loose. Measured on the printed sheet, using
+the dash pattern as a scale reference (the PDF dash array is 3-on 2-off in
+points, a 1.764 mm period): the gap from the tool's edge to the pocket line
+along the right handle came to about 1.9 mm against a nominal 2.0, so the tool
+sits on the silhouette line and the slack was entirely the clearance.
 
 ## Files
 
@@ -63,7 +65,7 @@ shows the outline matching the tool.
 ## Regenerate
 
 ```
-python3 ../../scripts/make_tool.py <photo> hsc8-6-4a --length 174 --width 81 --offset 2.0 --outdir .
+python3 ../../scripts/make_tool.py <photo> hsc8-6-4a --length 174 --width 81 --outdir .
 python3 ../../scripts/make_bin.py --meta meta.json --out . --stem bin
 python3 ../../scripts/make_sheet.py meta.json
 ```
