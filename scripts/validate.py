@@ -81,9 +81,9 @@ Two things that are NOT faults, and that you should not report:
 Reference numbers for this trace, which may help you spot a scale problem but \
 are not themselves what you are judging:
 
-  measured by hand   {length} x {width} mm
+  measured by hand   {length} mm long
   traced             {traced_l:.2f} x {traced_w:.2f} mm
-  aspect disagreement {aspect:+.1f}%
+{aspect}
 
 An aspect disagreement of a few percent is normal here and is usually the hand \
 measurement, not the trace. Do not report it as an issue unless the image \
@@ -116,8 +116,8 @@ def validate(tool_dir: str) -> Verdict:
     raw = np.array(meta["outline_raw"]) if "outline_raw" in meta else None
     traced_l = float(np.ptp(raw[:, 1])) if raw is not None else meta["outline_l"]
     traced_w = float(np.ptp(raw[:, 0])) if raw is not None else meta["outline_w"]
-    aspect = 100 * ((traced_l / traced_w) / (meta["length_mm"] / meta["width_mm"]) - 1) \
-        if meta.get("width_mm") else 0.0
+    aspect = (100 * ((traced_l / traced_w) / (meta["length_mm"] / meta["width_mm"]) - 1)
+              if meta.get("width_mm") else None)
 
     data, media_type = load_image(os.path.join(tool_dir, "trace.png"))
     client = anthropic.Anthropic()
@@ -131,8 +131,9 @@ def validate(tool_dir: str) -> Verdict:
                  "source": {"type": "base64", "media_type": media_type, "data": data}},
                 {"type": "text", "text": PROMPT.format(
                     offset=meta["offset_mm"], length=meta["length_mm"],
-                    width=meta["width_mm"], traced_l=traced_l,
-                    traced_w=traced_w, aspect=aspect)},
+                    traced_l=traced_l, traced_w=traced_w,
+                    aspect=("  aspect disagreement %+.1f%%" % aspect) if aspect
+                            is not None else "  (no width was given to compare against)")},
             ],
         }],
         output_format=Verdict,

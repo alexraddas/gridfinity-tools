@@ -118,7 +118,7 @@ This is the part that decides whether any of it works.
 | | |
 |---|---|
 | **Length** | Overall, along the long axis. **The entire model is scaled from this one number** — get it right and everything else follows; get it wrong and the bin is uniformly tight or loose. |
-| **Width** | Widest point, with the tool lying as photographed. A cross-check only; it does not rescale anything, and a few percent of disagreement is normal. |
+| **Width** *(optional)* | Widest point, lying as photographed. **Nothing is scaled from it** — pixels are square, so the width follows from the length and the photo. It only cross-checks the length for a gross typo, and the printed drawing does that better. Skip it if you like. |
 
 ### 3. Submit
 

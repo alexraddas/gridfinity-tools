@@ -179,14 +179,14 @@ jobs:
           if s.get("notches"):   f += ["--fill-notches", str(s["notches"])]
           if s.get("units_w"):   f += ["--units-w", str(s["units_w"])]
           if s.get("units_l"):   f += ["--units-l", str(s["units_l"])]
+          if s.get("width"):     f += ["--width", str(s["width"])]
           print(" ".join(f))
           PY
           DIR="$(python3 -c "import json;print(json.load(open('build.json'))['dir'])")"
           NAME="$(python3 -c "import json;print(json.load(open('build.json'))['name'])")"
           LEN="$(python3 -c "import json;print(json.load(open('build.json'))['length'])")"
-          WID="$(python3 -c "import json;print(json.load(open('build.json'))['width'])")"
 
-          python3 scripts/make_tool.py photo.jpg "$NAME" --length "$LEN" --width "$WID" \
+          python3 scripts/make_tool.py photo.jpg "$NAME" --length "$LEN" \
             $(cat flags.txt) --outdir "$DIR" | tee build.log
           python3 scripts/make_bin.py --meta "$DIR/meta.json" --out "$DIR" --stem bin --name "$NAME" | tee -a build.log
           python3 scripts/make_sheet.py "$DIR/meta.json"

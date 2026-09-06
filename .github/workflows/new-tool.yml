@@ -104,9 +104,11 @@ jobs:
           mkdir -p "${{ steps.spec.outputs.dir }}"
           FLAGS=""
           [ "${{ steps.spec.outputs.symmetric }}" = "True" ] && FLAGS="--symmetric --fill-notches 2.0"
+          # Width is optional — omitted rather than passed as "None".
+          W="${{ steps.spec.outputs.width }}"
+          [ -n "$W" ] && [ "$W" != "None" ] && FLAGS="$FLAGS --width $W"
           python3 scripts/make_tool.py photo.jpg "${{ steps.spec.outputs.name }}" \
             --length "${{ steps.spec.outputs.length }}" \
-            --width  "${{ steps.spec.outputs.width }}" \
             $FLAGS --outdir "${{ steps.spec.outputs.dir }}" | tee build.log
           python3 scripts/make_bin.py --meta "${{ steps.spec.outputs.dir }}/meta.json" \
             --out "${{ steps.spec.outputs.dir }}" --stem bin \

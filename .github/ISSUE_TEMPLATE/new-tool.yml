@@ -46,13 +46,15 @@ body:
   - type: input
     id: width
     attributes:
-      label: Width (mm)
+      label: Width (mm) — optional
       description: >
-        Widest point across the tool, measured with it lying as photographed. Used as a
-        cross-check, not for scaling — a few percent of disagreement is normal.
+        Widest point across the tool, lying as photographed. Nothing is scaled from this;
+        it only cross-checks the length for a gross typo. Leave it blank and the width is
+        derived from the photo instead — you will check it against the printed drawing
+        anyway, which is the better test.
       placeholder: "49"
     validations:
-      required: true
+      required: false
 
   - type: dropdown
     id: crossed_jaws

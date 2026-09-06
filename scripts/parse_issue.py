@@ -74,8 +74,10 @@ def parse(body: str) -> dict:
             if k == label:
                 got[name] = v
                 break
+    # Width is optional: nothing is scaled from it, and the printed sheet is a
+    # better width check than a number typed into a form.
     missing = [l for l, n in FIELDS.items()
-               if n not in ("notes",) and not got.get(n)]
+               if n not in ("notes", "width") and not got.get(n)]
     if missing:
         raise ValueError("the issue is missing: %s" % ", ".join(sorted(missing)))
 
@@ -93,7 +95,8 @@ def parse(body: str) -> dict:
         "dir": "%s/%s" % (slug(got["manufacturer"]), slug(got["part_number"])),
         "photo_url": m.group("md") or m.group("bare"),
         "length": number(got["length"], "length"),
-        "width": number(got["width"], "width"),
+        "width": number(got["width"], "width") if got.get("width", "").strip()
+                 not in ("", "_No response_") else None,
         "symmetric": symmetric,
         # GitHub writes this placeholder into empty optional fields
         "notes": "" if got.get("notes", "").strip() == "_No response_"

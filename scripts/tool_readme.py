@@ -21,7 +21,7 @@ TEMPLATE = """\
 | | |
 |---|---|
 | Measured length | {length:.0f} mm |
-| Measured width | {width:.0f} mm |
+| Width | {width} |
 | Traced (raw) | {traced_l:.2f} x {traced_w:.2f} mm |
 | Pocket | {pocket_l:.2f} x {pocket_w:.2f} mm |
 | Cutout depth | {depth:.0f} mm |
@@ -47,7 +47,7 @@ lay the tool on it before printing a bin: a bin that grips or rattles
 ## Regenerate
 
 ```
-python3 ../../scripts/make_tool.py <photo> {name} --length {length:.0f} --width {width:.0f}{flags} --outdir .
+python3 ../../scripts/make_tool.py <photo> {name} --length {length:.0f}{width_flag}{flags} --outdir .
 python3 ../../scripts/make_bin.py --meta meta.json --out . --stem bin
 python3 ../../scripts/make_sheet.py meta.json
 ```
@@ -89,7 +89,10 @@ def build(tool_dir: str, title: str, issue=None, aspect_note=True) -> str:
 
     return TEMPLATE.format(
         title=title, intro=intro, name=m["name"],
-        length=m["length_mm"], width=m["width_mm"] or 0,
+        length=m["length_mm"],
+        width=("%.0f mm (measured)" % m["width_mm"]) if m.get("width_mm")
+              else "%.1f mm (derived from the photo)" % traced_w,
+        width_flag=(" --width %.0f" % m["width_mm"]) if m.get("width_mm") else "",
         traced_l=traced_l, traced_w=traced_w,
         pocket_l=m["outline_l"], pocket_w=m["outline_w"],
         depth=m["depth_mm"], offset=m["offset_mm"],
