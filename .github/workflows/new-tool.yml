@@ -1,0 +1,190 @@
+name: Build a bin from an issue
+
+# Anyone can open a `new-tool` issue, so everything here treats the issue body
+# as hostile input:
+#   * the body is parsed by regex, never evaluated, and never sent to a model
+#   * the photo may only come from GitHub's own upload hosts
+#   * the photo is content-checked before it is processed at all
+#   * **the photograph is never committed** — only derived geometry reaches the
+#     branch, so no submitted image can end up in this repository's history
+# The result is a pull request the submitter reviews. See CLAUDE.md.
+on:
+  issues:
+    types: [opened, labeled]
+
+permissions:
+  contents: write        # to push the tool branch
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: new-tool-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: contains(github.event.issue.labels.*.name, 'new-tool')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Read the issue
+        id: spec
+        env:
+          # Through the environment, never interpolated into the shell — a body
+          # containing $(...) or backticks must stay inert text.
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          printf '%s' "$ISSUE_BODY" > issue.md
+          python3 scripts/parse_issue.py --body-file issue.md --out build.json
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          s = json.load(open("build.json"))
+          for k in ("name", "dir", "photo_url", "length", "width", "symmetric"):
+              print("%s=%s" % (k, s[k]))
+          PY
+
+      - name: Fetch the photo
+        run: |
+          curl -fsSL --max-time 60 --max-filesize 50000000 \
+               -o photo.bin "${{ steps.spec.outputs.photo_url }}"
+          python3 - <<'PY'
+          import cv2, sys
+          img = cv2.imread("photo.bin", cv2.IMREAD_COLOR)   # trust bytes, not extension
+          if img is None:
+              print("::error::that attachment could not be decoded as an image")
+              sys.exit(1)
+          h, w = img.shape[:2]
+          if min(h, w) < 600:
+              print("::error::photo is %dx%d — too small to trace accurately" % (w, h))
+              sys.exit(1)
+          cv2.imwrite("photo.jpg", img)
+          PY
+
+      # Fails closed: exit 2 (API unreachable, no key) is treated exactly like a
+      # rejection. An unreviewed image never reaches the pipeline.
+      - name: Content check
+        id: gate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if ! python3 scripts/gate.py photo.jpg --out gate.json --reason-file reject.md; then
+            echo "rejected=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Decline and stop
+        if: steps.gate.outputs.rejected == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          { cat reject.md 2>/dev/null || echo "This submission was not accepted."
+            echo
+            echo "Edit the issue with a new photo and re-apply the \`new-tool\` label to try again."
+          } > comment.md
+          gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --body-file comment.md
+          gh issue close "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --reason "not planned"
+          exit 1
+
+      - name: Build
+        run: |
+          mkdir -p "${{ steps.spec.outputs.dir }}"
+          FLAGS=""
+          [ "${{ steps.spec.outputs.symmetric }}" = "True" ] && FLAGS="--symmetric --fill-notches 2.0"
+          python3 scripts/make_tool.py photo.jpg "${{ steps.spec.outputs.name }}" \
+            --length "${{ steps.spec.outputs.length }}" \
+            --width  "${{ steps.spec.outputs.width }}" \
+            $FLAGS --outdir "${{ steps.spec.outputs.dir }}" | tee build.log
+          python3 scripts/make_bin.py --meta "${{ steps.spec.outputs.dir }}/meta.json" \
+            --out "${{ steps.spec.outputs.dir }}" --stem bin \
+            --name "${{ steps.spec.outputs.name }}" | tee -a build.log
+          python3 scripts/make_sheet.py "${{ steps.spec.outputs.dir }}/meta.json"
+          python3 scripts/check_stl.py "${{ steps.spec.outputs.dir }}/bin.stl" | tee -a build.log
+          python3 scripts/tool_readme.py "${{ steps.spec.outputs.dir }}" \
+            --title "${{ steps.spec.outputs.name }}" --issue "${{ github.event.issue.number }}"
+
+      - name: Check the trace
+        continue-on-error: true      # a bad verdict informs the submitter, it does not abort
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 scripts/validate.py "${{ steps.spec.outputs.dir }}" --markdown --out review.md
+
+      - name: Open the pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: tool/${{ github.event.issue.number }}-${{ steps.spec.outputs.name }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          # Derived geometry only. photo.jpg, photo.bin, issue.md, build.json,
+          # gate.json and the logs are all deliberately left behind.
+          git add "${{ steps.spec.outputs.dir }}"
+          git commit -q -m "Add ${{ steps.spec.outputs.name }} from #${{ github.event.issue.number }}
+
+          Generated from a photograph submitted in #${{ github.event.issue.number }}.
+          The photograph itself is not committed — only the traced geometry.
+
+          Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
+          git push -q origin "$BRANCH"
+          {
+            echo "Generated from #${{ github.event.issue.number }}, submitted by @${{ github.event.issue.user.login }}."
+            echo
+            echo "**The photograph is not included in this branch** — only the traced geometry."
+            echo
+            echo "@${{ github.event.issue.user.login }}: print \`outline_sheet.pdf\` at 100%, lay the tool on it,"
+            echo "and check the ruler legs read 50 mm. Then comment on this PR:"
+            echo
+            python3 -c "import sys; sys.path.insert(0,'scripts'); import pr_command; print(pr_command.HELP)"
+            echo "Closes #${{ github.event.issue.number }}"
+          } > pr.md
+          URL=$(gh pr create --title "Add ${{ steps.spec.outputs.name }}" \
+                             --body-file pr.md --head "$BRANCH" --base main)
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: Post the sheet for review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: tool/${{ github.event.issue.number }}-${{ steps.spec.outputs.name }}
+        run: |
+          RAW="${{ github.server_url }}/${{ github.repository }}/blob/${BRANCH}/${{ steps.spec.outputs.dir }}/outline_sheet.pdf"
+          {
+            echo "### Check this before it merges"
+            echo
+            echo "**[outline_sheet.pdf](${RAW})** — print at 100%, lay the tool on it."
+            echo "Both ruler legs must measure 50 mm, or the print was scaled and nothing else on the sheet means anything."
+            echo
+            echo '```'
+            grep -E "traced:|aspect vs|outline |grid:|fits lip|watertight" build.log || true
+            echo '```'
+            echo
+            [ -f review.md ] && cat review.md
+          } > sheet.md
+          gh pr comment "${{ steps.pr.outputs.url }}" --body-file sheet.md
+
+      - name: Point the submitter at the PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" \
+            --body "Built it — review and approve at ${{ steps.pr.outputs.url }}."
+
+      - name: Say what went wrong
+        if: failure() && steps.gate.outputs.rejected != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --body \
+            "The build failed — log in the [run]($RUN_URL).
+
+          Most often this is the photograph: the tool needs a clear margin of plain
+          background on every side, diffuse light, and no hard shadow beside it."

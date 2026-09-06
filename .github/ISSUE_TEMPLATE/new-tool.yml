@@ -1,0 +1,90 @@
+name: Add a tool
+description: Upload an overhead photo of a hand tool and get a Gridfinity bin generated for it.
+title: "[tool] "
+labels: ["new-tool"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Fill this in and a bin will be generated automatically — usually within a few minutes.
+        You'll get back the STLs, a DXF, and a dimensioned 1:1 drawing to print and check.
+
+        **The photo matters more than anything else here.** Shoot straight down, tool flat,
+        whole tool in frame, on an uncluttered background with a good margin all round.
+        Diffuse light — a hard shadow beside the tool can be darker than the tool itself and
+        gets traced as part of it. Wood or white paper both work.
+
+  - type: input
+    id: manufacturer
+    attributes:
+      label: Manufacturer
+      description: Whoever made it. If it's unbranded, say so.
+      placeholder: Klein Tools
+    validations:
+      required: true
+
+  - type: input
+    id: part_number
+    attributes:
+      label: Part number
+      description: As printed on the tool. If there isn't one, describe the tool instead.
+      placeholder: D228-8
+    validations:
+      required: true
+
+  - type: input
+    id: length
+    attributes:
+      label: Length (mm)
+      description: >
+        Overall length along the tool's long axis. Measure carefully — the whole model is
+        scaled from this one number, so a wrong length makes the bin uniformly tight or loose.
+      placeholder: "206"
+    validations:
+      required: true
+
+  - type: input
+    id: width
+    attributes:
+      label: Width (mm)
+      description: >
+        Widest point across the tool, measured with it lying as photographed. Used as a
+        cross-check, not for scaling — a few percent of disagreement is normal.
+      placeholder: "49"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: crossed_jaws
+    attributes:
+      label: Does it have crossed jaws?
+      description: >
+        Pliers, cutters and most crimpers do — the two halves pivot past each other. Those
+        tools look different from each side, so the pocket only accepts the face that was
+        photographed unless it's made symmetric.
+      options:
+        - "No — it's the same shape whichever way up (screwdriver, wrench, straight tool)"
+        - "Yes — and I'll always lay it in the way it's photographed"
+        - "Yes — make the pocket take it either way up"
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: photo
+    attributes:
+      label: Photo
+      description: Drag the image in here, or paste it.
+      placeholder: Drop the photo here.
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything unusual?
+      description: >
+        Spring-loaded handles that won't sit still, a bent or offset tool, a face with a
+        label you want uppermost in the drawer — anything that would change how it's traced.
+    validations:
+      required: false

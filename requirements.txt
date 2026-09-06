@@ -1,0 +1,6 @@
+# The photo-to-STL pipeline. Pinned loosely: these are stable APIs and the
+# floor matters more than the ceiling.
+numpy>=1.26
+opencv-python-headless>=4.9   # headless: no GUI libs, which CI does not have
+cadquery>=2.8                 # OCCT solid modelling; replaced the Fusion dependency
+anthropic>=0.40               # optional, for scripts/validate.py only

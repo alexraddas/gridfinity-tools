@@ -57,11 +57,22 @@ the only way to see it is to sample the image across the boundary.
 
 ## Requirements
 
-- `numpy`, `opencv-python`
-- Autodesk Fusion running, with its MCP server on `127.0.0.1:27182`
-  (`fmcp.py` speaks to it; note the session id must be sent with every request
-  *and* the `initialized` notification must follow `initialize`, or `tools/list`
-  returns empty)
+`pip install -r ../requirements.txt` — numpy, OpenCV, and CadQuery.
+
+Solids are built by `geom.py` on CadQuery/OCCT: rounded-rect wires, 45-degree
+tapered extrudes for the base pads, a ruled loft for the lip, and boolean cuts
+for the pocket. It replaced a dependency on Autodesk Fusion, which meant a
+licensed GUI application had to be running and made CI impossible. Validated
+against the Fusion output on all 13 tools: worst disagreement 0.25% by volume.
+
+One deliberate difference: the tool outline is a polyline here where Fusion
+fitted a spline through the same points. The spline bowed outward by up to
+0.07 mm, so pockets came out fractionally larger than the computed outline.
+
+`--engine fusion` still exists on `make_tool.py` and `make_bin.py` and needs
+Fusion on `127.0.0.1:27182` (`fmcp.py` speaks to it; the session id must be sent
+with every request *and* the `initialized` notification must follow
+`initialize`, or `tools/list` returns empty).
 
 ## Backdrops
 

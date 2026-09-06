@@ -11,14 +11,17 @@ have gone wrong before and how to not repeat them.
     python3 scripts/make_bin.py --meta <dir>/meta.json --out <dir> --stem bin
     python3 scripts/make_sheet.py <dir>/meta.json
 
-`bash scripts/build-all.sh` rebuilds every tool from its photograph and writes
-its sheet. `NO_BUILD=1 bash scripts/build-all.sh` refreshes `meta.json` and the
-sheets without touching Fusion — use it after a segmentation change to see what
-moved before spending 26 Fusion round-trips on STLs.
+`bash scripts/build-all.sh` rebuilds every tool and writes its sheet.
+`NO_BUILD=1 bash scripts/build-all.sh` refreshes `meta.json` and the sheets
+without building solids — use it after a segmentation change to see what moved
+before spending the geometry time.
 
-Fusion must be running with its MCP server on `127.0.0.1:27182`. Artefacts land
-in the tool's own folder; **nothing should ever be written to the repository
-root.**
+Solids are built headlessly by `scripts/geom.py` on CadQuery/OCCT, so the whole
+pipeline runs anywhere Python does. `--engine fusion` still drives Autodesk
+Fusion over its MCP server on `127.0.0.1:27182`; the two agree to within 0.25%
+by volume across all 13 tools, and CadQuery is the default because CI cannot run
+a licensed GUI application. Artefacts land in the tool's own folder;
+**nothing should ever be written to the repository root.**
 
 ## Verifying a bin
 
@@ -99,6 +102,41 @@ judged rather than discovered after a print.
 - Leave roughly a tool-width of clear backdrop on every side.
 - Spring-loaded handles: let them rest, and note where they sat.
 - Shoot the face that should be uppermost in the drawer.
+
+## Automated intake from issues
+
+`.github/` accepts tool submissions from strangers. The whole design turns on
+one decision: **a submitted photograph is never committed.** Only traced
+geometry reaches a branch, so no image a stranger uploads can enter this
+repository's history — where it would be effectively permanent. `trace.png` is
+gitignored for the same reason, and the sheet rendered into the PR is vector
+output from the outline, carrying no pixels from the photo.
+
+The rest of the trust boundary:
+
+- **`scripts/gate.py` fails closed.** Exit 2 (no API key, API unreachable)
+  is treated as rejection, not as permission. A gate that fails open is not a
+  gate. It re-runs on every rebuild, because issues are editable and the image
+  behind a URL can change after it passed.
+- **Model output is never trusted with authority.** `gate.py` and
+  `validate.py` return structured verdicts that the workflow branches on; no
+  model output is executed, interpolated into a shell, or committed.
+- **Untrusted text never reaches a model.** The issue's free-text notes are
+  parsed and stored but never sent to Claude, so there is nothing for a prompt
+  injection to ride in on. Only images and derived numbers go into a request.
+- **Issue and comment bodies are regex-matched, never evaluated**, and passed
+  through the environment rather than interpolated into shell commands.
+- **Photos may only come from GitHub's own upload hosts**, so an issue cannot
+  point the runner at an arbitrary URL.
+- **Commands are gated to the submitter**, resolved from the PR body that only
+  this pipeline writes — not from the comment.
+
+**The residual risk is auto-merge.** `/approve` from the submitter merges
+without a maintainer. The blast radius is bounded to geometry, but a
+classifier can be evaded and self-approval is still self-approval. To require
+a human instead, drop the `Merge` step in `tool-feedback.yml` to
+`gh pr ready` + a review request, or add a branch-protection rule requiring one
+approving review — the rest of the flow is unchanged.
 
 ## Housekeeping
 

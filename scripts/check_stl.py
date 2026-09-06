@@ -31,3 +31,13 @@ def check(path, meta_json=None, png=None):
         cv2.imwrite(png,vis); print("   wrote",png)
 if __name__=="__main__":
     check(sys.argv[1], sys.argv[2] if len(sys.argv)>2 else None, sys.argv[3] if len(sys.argv)>3 else None)
+
+
+def volume(path):
+    """Signed volume by the divergence theorem, for comparing two builds."""
+    import struct, numpy as np
+    d = open(path, 'rb').read(); n = struct.unpack('<I', d[80:84])[0]
+    V = np.frombuffer(d[84:84 + 50 * n],
+                      dtype=np.dtype([('n', '<3f4'), ('v', '<3,3f4'), ('a', '<u2')]))['v']
+    a, b, c = V[:, 0].astype(float), V[:, 1].astype(float), V[:, 2].astype(float)
+    return float(np.abs(np.einsum('ij,ij->i', a, np.cross(b, c)).sum()) / 6.0)

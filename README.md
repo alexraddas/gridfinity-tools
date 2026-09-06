@@ -94,6 +94,15 @@ Scale comes entirely from the length measurement, so a bin that grips or
 rattles *uniformly* is almost always a mis-measured length rather than a bad
 trace. The 1:1 sheet settles it.
 
+## Submitting a tool
+
+[Open an issue](../../issues/new?template=new-tool.yml) with an overhead photo
+and two measurements. A bin is generated automatically and opened as a pull
+request with a dimensioned 1:1 drawing to print and check; comment `/approve`
+on it when the tool sits right on the sheet, or `/length 240` and the like to
+adjust. Your photograph is used to trace the outline and is never committed —
+only the geometry is.
+
 ## Making a bin for your own tool
 
 See [`scripts/README.md`](scripts/README.md). You will need a photograph, two

@@ -1,0 +1,41 @@
+name: Retire stale tool submissions
+
+# A submission nobody confirmed is a branch holding an unverified bin. After 30
+# days the pull request is closed and its branch deleted, so abandoned work does
+# not accumulate and nothing unreviewed sits around looking merge-ready.
+on:
+  schedule:
+    - cron: "17 4 * * *"       # daily, off the hour to avoid the load spike
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  retire:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close and delete anything older than 30 days
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          CUTOFF=$(date -u -d '30 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          echo "closing tool PRs with no activity since $CUTOFF"
+          gh pr list --repo "$REPO" --state open --limit 200 \
+             --json number,title,updatedAt,headRefName \
+             --jq ".[] | select(.title | startswith(\"Add \")) |
+                   select(.updatedAt < \"$CUTOFF\") |
+                   [.number, .headRefName] | @tsv" > stale.tsv || true
+
+          if [ ! -s stale.tsv ]; then echo "nothing stale"; exit 0; fi
+          while IFS=$'\t' read -r NUM BRANCH; do
+            echo "closing #$NUM ($BRANCH)"
+            gh pr close "$NUM" --repo "$REPO" --delete-branch --comment \
+              "Closed automatically: no activity for 30 days, and an unconfirmed
+          bin should not sit around looking ready to merge.
+
+          Nothing is lost — reopen the original issue, or open a new one with the
+          photo, and it will be rebuilt."
+          done < stale.tsv

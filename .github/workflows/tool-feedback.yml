@@ -1,0 +1,206 @@
+name: Tool PR feedback
+
+# Commands on a tool PR, honoured only for the person who submitted it.
+#
+# `issue_comment` runs from the default branch with the base repo's token, so
+# the workflow definition is always this file, never a version from the branch.
+# Comment text is matched against a fixed pattern list and never evaluated; the
+# author check happens before anything acts.
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: tool-feedback-${{ github.event.issue.number }}
+  cancel-in-progress: false      # queue commands, don't drop them
+
+jobs:
+  command:
+    # Only PR comments, and only on branches this pipeline created.
+    if: >
+      github.event.issue.pull_request &&
+      startsWith(github.event.issue.title, 'Add ') &&
+      startsWith(github.event.comment.body, '/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Identify the PR and its submitter
+        id: ctx
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr view "${{ github.event.issue.number }}" --repo "${{ github.repository }}" \
+             --json headRefName,body,number > pr.json
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, re
+          pr = json.load(open("pr.json"))
+          print("branch=%s" % pr["headRefName"])
+          # Both facts live in the PR body, which only this pipeline writes.
+          sub = re.search(r"submitted by @([A-Za-z0-9-]+)", pr["body"])
+          iss = re.search(r"Closes #(\d+)", pr["body"])
+          print("submitter=%s" % (sub.group(1) if sub else ""))
+          print("issue=%s" % (iss.group(1) if iss else ""))
+          PY
+
+      - name: Parse the command
+        id: cmd
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          printf '%s' "$COMMENT_BODY" > comment.md
+          python3 scripts/pr_command.py --body-file comment.md \
+            --author "${{ github.event.comment.user.login }}" \
+            --allow  "${{ steps.ctx.outputs.submitter }}" --out cmd.json
+          python3 -c "
+          import json; c=json.load(open('cmd.json'))
+          print('command=%s' % c['command'])
+          print('message=%s' % c.get('message',''))
+          " >> "$GITHUB_OUTPUT"
+
+      - name: Refuse politely
+        if: steps.cmd.outputs.command == 'denied' || steps.cmd.outputs.command == 'error'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment "${{ github.event.issue.number }}" \
+             --body "${{ steps.cmd.outputs.message }}"
+
+      - name: Close on request
+        if: steps.cmd.outputs.command == 'close'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr close "${{ github.event.issue.number }}" --delete-branch \
+             --comment "Closed at the submitter's request."
+
+      # ---------------------------------------------------------------- merge
+      - name: Merge
+        if: steps.cmd.outputs.command == 'approve'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment "${{ github.event.issue.number }}" --body \
+            "Approved by the submitter after checking the printed sheet. Merging."
+          gh pr merge "${{ github.event.issue.number }}" --squash --delete-branch
+
+      # -------------------------------------------------------------- rebuild
+      - name: Rebuild with the new parameter
+        if: >
+          steps.cmd.outputs.command == 'length' ||
+          steps.cmd.outputs.command == 'width' ||
+          steps.cmd.outputs.command == 'symmetric' ||
+          steps.cmd.outputs.command == 'notches' ||
+          steps.cmd.outputs.command == 'bin'
+        id: rebuild
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          git fetch -q origin "${{ steps.ctx.outputs.branch }}"
+          git checkout -q "${{ steps.ctx.outputs.branch }}"
+
+          # The photo is not in the repository by design, so re-read it from the
+          # issue that started this. Same parser, same host restriction.
+          gh issue view "${{ steps.ctx.outputs.issue }}" --repo "${{ github.repository }}" \
+             --json body -q .body > issue.md
+          python3 scripts/parse_issue.py --body-file issue.md --out build.json
+
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          spec, cmd = json.load(open("build.json")), json.load(open("cmd.json"))
+          meta_dir = spec["dir"]
+          # Start from what the branch was last built with, then apply the one change.
+          try:
+              prev = json.load(open("%s/meta.json" % meta_dir))
+              spec["length"] = prev["length_mm"]; spec["width"] = prev["width_mm"]
+              spec["symmetric"] = bool(prev.get("symmetric"))
+              spec["notches"] = prev.get("fill_notches") or 0.0
+          except FileNotFoundError:
+              spec["notches"] = 2.0 if spec["symmetric"] else 0.0
+          c = cmd["command"]
+          if c in ("length", "width", "notches"): spec[c] = cmd["value"]
+          elif c == "symmetric":                  spec["symmetric"] = cmd["value"]
+          elif c == "bin":
+              spec["units_w"], spec["units_l"] = cmd["units_w"], cmd["units_l"]
+          json.dump(spec, open("build.json", "w"))
+          for k in ("name", "dir", "photo_url", "length", "width", "symmetric",
+                    "notches", "units_w", "units_l"):
+              if k in spec: print("%s=%s" % (k, spec[k]))
+          PY
+
+          URL="$(python3 -c "import json;print(json.load(open('build.json'))['photo_url'])")"
+          curl -fsSL --max-time 60 --max-filesize 50000000 -o photo.bin "$URL"
+          python3 -c "
+          import cv2,sys
+          i=cv2.imread('photo.bin',cv2.IMREAD_COLOR)
+          sys.exit('cannot decode the photo') if i is None else cv2.imwrite('photo.jpg', i)"
+
+          # The photo is re-checked on every rebuild: the issue is editable, so
+          # the image behind that URL may not be the one that passed the first time.
+          python3 scripts/gate.py photo.jpg --reason-file reject.md || {
+            gh pr comment "${{ github.event.issue.number }}" --body-file reject.md
+            exit 1
+          }
+
+          python3 - <<'PY' > flags.txt
+          import json
+          s = json.load(open("build.json"))
+          f = []
+          if s.get("symmetric"): f.append("--symmetric")
+          if s.get("notches"):   f += ["--fill-notches", str(s["notches"])]
+          if s.get("units_w"):   f += ["--units-w", str(s["units_w"])]
+          if s.get("units_l"):   f += ["--units-l", str(s["units_l"])]
+          print(" ".join(f))
+          PY
+          DIR="$(python3 -c "import json;print(json.load(open('build.json'))['dir'])")"
+          NAME="$(python3 -c "import json;print(json.load(open('build.json'))['name'])")"
+          LEN="$(python3 -c "import json;print(json.load(open('build.json'))['length'])")"
+          WID="$(python3 -c "import json;print(json.load(open('build.json'))['width'])")"
+
+          python3 scripts/make_tool.py photo.jpg "$NAME" --length "$LEN" --width "$WID" \
+            $(cat flags.txt) --outdir "$DIR" | tee build.log
+          python3 scripts/make_bin.py --meta "$DIR/meta.json" --out "$DIR" --stem bin --name "$NAME" | tee -a build.log
+          python3 scripts/make_sheet.py "$DIR/meta.json"
+          python3 scripts/check_stl.py "$DIR/bin.stl" | tee -a build.log
+          python3 scripts/tool_readme.py "$DIR" --title "$NAME" --issue "${{ steps.ctx.outputs.issue }}"
+          python3 scripts/validate.py "$DIR" --markdown --out review.md || true
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DIR"
+          git commit -q -m "Rebuild ${NAME}: ${{ steps.cmd.outputs.command }}
+
+          Requested by the submitter on the pull request.
+
+          Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
+          git push -q origin "${{ steps.ctx.outputs.branch }}"
+
+          RAW="${{ github.server_url }}/${{ github.repository }}/blob/${{ steps.ctx.outputs.branch }}/${DIR}/outline_sheet.pdf"
+          {
+            echo "Rebuilt with \`/${{ steps.cmd.outputs.command }}\` applied."
+            echo
+            echo "**[outline_sheet.pdf](${RAW})** — print at 100% and check it again."
+            echo
+            echo '```'
+            grep -E "traced:|aspect vs|outline |grid:|fits lip|watertight" build.log || true
+            echo '```'
+            echo
+            [ -f review.md ] && cat review.md
+          } > out.md
+          gh pr comment "${{ github.event.issue.number }}" --body-file out.md

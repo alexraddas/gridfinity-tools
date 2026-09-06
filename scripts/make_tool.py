@@ -119,6 +119,18 @@ def width_profile(P,res=8.0):
         rows.append(((r-1)/res+mn[1], (xs.max()-xs.min())/res, len(xs)/res))
     return rows   # (y, outer span, material)
 
+def build_cq(name,P,height,slot_y,slot_len,slot_w,outdir,stem='cutout'):
+    """Headless build. No Fusion, so this is what CI uses."""
+    import geom
+    os.makedirs(outdir,exist_ok=True)
+    body=geom.cutout_solid(P,height,slot_y,slot_len,slot_w)
+    stl=geom.export_stl(body,os.path.join(outdir,stem+".stl"))
+    dxf=geom.export_dxf(P,os.path.join(outdir,stem+".dxf"))
+    d=geom.describe(body)
+    return ("bbox mm: %.2f x %.2f x %.2f\nvolume mm3: %.1f\nexported: %s %d bytes\n"
+            "exported: %s %d bytes"%(*d["bbox"],d["volume"],
+            stl,os.path.getsize(stl),dxf,os.path.getsize(dxf)))
+
 def build(name,P,height,slot_y,slot_len,slot_w,outdir,stem='cutout',keep_open=False):
     script='''
 import adsk.core, adsk.fusion, os, json
@@ -234,6 +246,9 @@ def main():
                     help="union the outline with its mirror, so the pocket takes the\n"
                          "tool either face up. Use on any tool with crossed jaws")
     ap.add_argument("--no-build",action="store_true")
+    ap.add_argument("--engine",choices=("cadquery","fusion"),default="cadquery",
+                    help="cadquery (default) needs no Fusion and runs in CI;\n"
+                         "fusion drives the MCP server on 127.0.0.1:27182")
     a=ap.parse_args()
     a.outdir=os.path.abspath(a.outdir)
 
@@ -308,6 +323,7 @@ def main():
 
     meta=dict(name=a.name,source=os.path.basename(a.image),
               length_mm=a.length,width_mm=a.width,mirrored=bool(a.mirror),
+              symmetric=bool(a.symmetric),fill_notches=a.fill_notches or None,
               depth_mm=a.height,offset_mm=a.offset,
               outline_w=round(ow,3),outline_l=round(ol,3),
               grid_units=[uw,ul],bin_mm=[uw*a.grid,ul*a.grid],
@@ -319,6 +335,9 @@ def main():
     json.dump(meta,open(os.path.join(a.outdir,"meta.json"),"w"),indent=1)
     print("wrote",os.path.join(a.outdir,"meta.json"))
     if not a.no_build:
-        print(build(a.name,off,a.height,slot_y,slot_len,a.slot_w,a.outdir,keep_open=a.keep_open))
+        if a.engine=="cadquery":
+            print(build_cq(a.name,off,a.height,slot_y,slot_len,a.slot_w,a.outdir))
+        else:
+            print(build(a.name,off,a.height,slot_y,slot_len,a.slot_w,a.outdir,keep_open=a.keep_open))
 
 if __name__=="__main__": main()

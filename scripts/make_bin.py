@@ -186,6 +186,8 @@ def main():
     ap.add_argument("--name", default="bin")
     ap.add_argument("--meta", default=None, help="tool meta.json to subtract")
     ap.add_argument("--keep-open", action="store_true", help="leave the Fusion document open")
+    ap.add_argument("--engine", choices=("cadquery", "fusion"), default="cadquery",
+                    help="cadquery (default) needs no Fusion and runs in CI")
     a = ap.parse_args()
     tool=None
     if a.meta:
@@ -193,6 +195,16 @@ def main():
         tool=dict(outline=m["outline"], depth=m["depth_mm"],
                   slot_y=m["slot"]["y"], slot_w=m["slot"]["width"], slot_len=m["slot"]["length"])
         if not a.nx: a.nx, a.ny = m["grid_units"]
+    if a.engine == "cadquery":
+        import geom
+        os.makedirs(os.path.abspath(a.out), exist_ok=True)
+        body = geom.bin_solid(a.nx, a.ny, a.height, a.cavity_floor, tool)
+        path = geom.export_stl(body, os.path.join(os.path.abspath(a.out), a.stem + ".stl"))
+        d = geom.describe(body)
+        print("bbox mm: %.3f x %.3f x %.3f" % d["bbox"])
+        print("volume mm3: %.1f" % d["volume"])
+        print("exported:", path, os.path.getsize(path), "bytes")
+        return
     P = dict(keep_open=int(a.keep_open), tool=tool, nx=a.nx, ny=a.ny, height=a.height, clear=CLEAR, cell=CELL, wall=WALL,
              lip=LIP, base_h=BASE_H, cavity_floor=a.cavity_floor,
              out=os.path.abspath(a.out), stem=a.stem, name=a.name)
