@@ -19,7 +19,7 @@ TOOLS=(
 "tool-aid/18880-deutsch-crimper|$PHOTOS/IMG_1809.jpeg|toolaid-18880|155|103|--units-l 4"
 "hks/ratcheting-crimper-6-35mm2|$PHOTOS/IMG_1823.jpeg|hks-crimper|235|79|--mirror"
 "doyle/cable-cutters|$PHOTOS/IMG_1806.jpeg|doyle-cutters|240|51|--units-l 7 --symmetric --fill-notches 2.0"
-"baomain/hsc8-6-4a-ferrule-crimper|$PHOTOS/IMG_1812.jpeg|hsc8-6-4a|171|81|--offset 2.0"
+"baomain/hsc8-6-4a-ferrule-crimper|$PHOTOS/IMG_hsc8-6-4a.jpeg|hsc8-6-4a|174|81|--offset 2.0"
 "iwiss/iwd-12-deutsch-crimper|$PHOTOS/IMG_1824.jpeg|iwiss-iwd-12|160|103|"
 "heschen/hs-07fl-crimper|$PHOTOS/IMG_1822.jpeg|hs-07fl|226|71|--units-w 2"
 "pressmaster/krb-0560-crimper|$PHOTOS/IMG_1826.jpeg|pressmaster-krb-0560|253|73|"

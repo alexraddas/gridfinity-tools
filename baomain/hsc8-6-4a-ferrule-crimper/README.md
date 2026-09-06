@@ -1,86 +1,69 @@
 # Baomain HSC8 6-4A — Self-adjusting ferrule crimper
 
-Source photo: `IMG_1812.jpeg`
+Source photo: `IMG_hsc8-6-4a.jpeg`
 
-HSC8 6-4A is a model designation sold by many vendors. Nothing is marked on
-the tool itself — the body is plain black with only crimp-size marks on the
-hex die — so the manufacturer is recorded from the owner rather than read off
-the tool.
+HSC8 6-4A is a model designation sold by many vendors. The head carries only
+"HSC8 6-4A" and the crimp range, so the manufacturer is recorded from the owner
+rather than read off the tool.
 
 | | |
 |---|---|
 | Model | HSC8 6-4A |
 | Manufacturer | Baomain |
-| Measured length | 171 mm |
+| Measured length | 174 mm |
 | Measured width | 81 mm at the handle ends (see note) |
-| Traced (raw) | 170.93 mm long, 71.35 mm wide |
-| Pocket | 174.87 x 75.30 mm |
+| Traced (raw) | 173.90 x 74.81 mm |
+| Pocket | 177.82 x 78.71 mm |
 | Cutout depth | 20 mm |
 | Bin size | 3x5 units (125.38 x 209.38 mm) |
 | Clearance | 2.0 mm radial (the repo default is 1.5) |
 
-**Single-face pocket: this one has a right way up.** The frame is a single
-plate carrying the fixed handle; the moving handle is a separate lever riveted
-on one face, and it stands proud of the frame in plan view. Laid in the other
-face up the tool presents the mirror of the photographed silhouette, which
-fouls the pocket at 50 of 106 vertices, worst case 4.98 mm, spread over all
-four regions of the outline rather than concentrated at one corner. It will not
-enter that way round.
+**Shot on the label face, which is the fix for a mirrored pocket.** The previous
+photo, `IMG_1812.jpeg`, showed the *reverse* face — no "HSC8 6-4A" stamping, and
+the spring on the other side of centre. The frame is a single plate carrying the
+fixed handle, with the moving handle a separate lever riveted to one face and
+standing proud of it in plan view, so the two faces are not mirror images:
+laid label-up, the tool fouled the old pocket at 50 of 106 vertices, worst case
+4.98 mm. Rebuilt from a label-up photograph, so the pocket now matches the way
+the tool naturally goes down. Checked by rasterising the finished outline
+against the photo's own mask: IoU 0.930 as traced, 0.826 mirrored.
 
-A `--symmetric` build was tried and reverted. Unioning the two silhouettes cost
-987 mm2 of pocket area (+11.8%) and up to 6.63 mm of local slop where they
-disagree. Note this is not really a crossed-jaw tool -- the hex die closes
-concentrically -- so the union was buying two-way insertion on a tool that has
-an obvious right way up, at the price of a looser pocket everywhere the lever
-sits.
+**This tool has a right way up.** A `--symmetric` build — union with the mirror,
+so either face drops in — was tried and reverted. It cost 987 mm2 of pocket
+area (+11.8%) and up to 6.63 mm of local slop, which is a poor trade on a tool
+with an obvious correct orientation. It is not really a crossed-jaw tool
+anyway: the hex die closes concentrically, and what breaks its mirror symmetry
+is the riveted moving-handle lever.
 
-About half of that mirror mismatch is not a real 3D feature but a skew: because
-only one handle moves and it sat squeezed in the photo, the silhouette's
-minimum-area-rectangle axis is tilted about 1.6 degrees off the tool's own
-symmetry axis, and rotating the mirrored silhouette by 3.25 degrees recovers
-4.98 mm down to 2.09 mm.
+**Traced width is 6.2 mm under the measurement** (74.81 vs 81.0, aspect +7.4%,
+well past the 4% check). The handles are spring-loaded, so how far apart they
+sit in the photograph sets the traced width. Three separate photographs traced
+73.9, 74.8 and 74.8 mm at this length, so the photographed spread is at least
+consistent; either the tool rests narrower than 81 mm or the 81 mm was taken
+with the grips pushed apart. **Print `outline_sheet.pdf` and lay the tool on it
+before printing a bin** — that settles it in a way no amount of arithmetic can.
 
-**Clearance is 2.0 mm here, not the repo's usual 1.5.** The extra 0.5 mm pays
-for a scale error that cannot be removed without a reshoot. The handles are
-spring-loaded and sat squeezed in the photo, and squeezing them swings the
-moving handle's tip *away* from the head: measured about the pivot at
-(10.2, 30.4) mm with a tip radius of 117.3 mm, opening the handles from the
-traced 68.7 mm spread to the measured 81 mm retracts that tip by 2.6 mm. The
-photographed pose is therefore 172.4–173.6 mm long where the tool at rest is
-171 mm, so scaling the trace to 171 mm shrinks the whole model by 0.8–1.5% —
-a median 0.36 mm per side and up to 1.21 mm at the head. That is a uniform,
-all-around loss, and it is what made the first pocket grip everywhere: against
-the real tool it delivered only **+0.30 to +0.73 mm** of clearance at its
-tightest point, not the 1.5 mm it nominally carried. At 2.0 mm the worst case
-is +0.62 mm even on the most pessimistic pose correction, and +1.88 mm on the
-least. 3.0 mm was rejected: free play would rise to about +-2.9 mm and the
-pocket would stop locating the tool.
-
-**Built as photographed; the handle spread is still short.** The traced handle
-ends span 68.7 mm against 81 mm measured — 12.3 mm, or 6.15 mm per side. The
-pocket matches the photo, so the tool still seats with the handles squeezed
-inward rather than at full rest. The spring takes that up easily and it is not
-what made the bin feel tight; the *rigid* head is what binds. Reshoot with the
-handles held open at their measured spread and rebuild if you want it to drop
-in without pinching the grips — that would also remove the scale error above
-and let the clearance go back to 1.5 mm.
-
-**`make_tool.py` prints an aspect warning for this tool, and it is expected.**
-The traced 994 x 418 px silhouette is 12.7% off the measured 171 x 81 aspect,
-for exactly the handle-spread reason above. The trace overlay is correct; check
-it rather than the number.
+**Clearance is 2.0 mm rather than the repo's 1.5, and may no longer be needed.**
+The 2.0 was introduced to pay for a scale error inferred from the *old* photo
+and an assumed 171 mm length: the squeezed pose made the photographed tool
+172.4–173.6 mm long, so scaling that to 171 mm shrank the whole model by
+0.8–1.5%. With the length corrected to 174 mm and a fresh photograph, that
+justification is largely gone — but nothing has yet confirmed the new scale is
+right, so it stays at 2.0. Drop it to the 1.5 mm default once the paper sheet
+shows the outline matching the tool.
 
 ## Files
 
 - `cutout.stl` — cutting body. Subtract from a bin to produce the pocket.
 - `cutout.dxf` — 2D outline in mm (outline only; the finger slot is not included).
 - `bin.stl` — finished gridfinity container, pocket already subtracted.
+- `outline_sheet.pdf` / `.jpg` — dimensioned 1:1 drawing. Print at 100%.
 - `meta.json` — every parameter used, including the outline points.
 
 ## Regenerate
 
 ```
-python3 ../../scripts/make_tool.py <photo> hsc8-6-4a --length 171 --width 81 \
-    --offset 2.0 --outdir .
+python3 ../../scripts/make_tool.py <photo> hsc8-6-4a --length 174 --width 81 --offset 2.0 --outdir .
 python3 ../../scripts/make_bin.py --meta meta.json --out . --stem bin
+python3 ../../scripts/make_sheet.py meta.json
 ```
