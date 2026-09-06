@@ -114,10 +114,17 @@ output from the outline, carrying no pixels from the photo.
 
 The rest of the trust boundary:
 
-- **`scripts/gate.py` fails closed.** Exit 2 (no API key, API unreachable)
-  is treated as rejection, not as permission. A gate that fails open is not a
-  gate. It re-runs on every rebuild, because issues are editable and the image
-  behind a URL can change after it passed.
+- **A maintainer is the content gate.** Every submission opens as a *draft*
+  PR and only a maintainer can merge it. `/approve` from the submitter means
+  "it fits the sheet" — it marks the PR ready and requests review, nothing
+  more. This is the one check that cannot be prompt-injected or fooled by a
+  classifier-evading image.
+- **`scripts/gate.py` is an optional pre-filter**, enabled by setting
+  `ANTHROPIC_API_KEY`. With no key the step is skipped. With a key it fails
+  closed — exit 2 (API unreachable) counts as rejection, never as permission —
+  and re-runs on every rebuild, because issues are editable and the image
+  behind a URL can change after it passed. It only ever *adds* a rejection
+  path; it never grants approval.
 - **Model output is never trusted with authority.** `gate.py` and
   `validate.py` return structured verdicts that the workflow branches on; no
   model output is executed, interpolated into a shell, or committed.
@@ -131,12 +138,11 @@ The rest of the trust boundary:
 - **Commands are gated to the submitter**, resolved from the PR body that only
   this pipeline writes — not from the comment.
 
-**The residual risk is auto-merge.** `/approve` from the submitter merges
-without a maintainer. The blast radius is bounded to geometry, but a
-classifier can be evaded and self-approval is still self-approval. To require
-a human instead, drop the `Merge` step in `tool-feedback.yml` to
-`gh pr ready` + a review request, or add a branch-protection rule requiring one
-approving review — the rest of the flow is unchanged.
+**Nothing merges without a human.** That is deliberate and is the property to
+preserve if this is ever changed: an automated approval path would put the
+whole design at the mercy of a classifier, and classifiers can be evaded.
+Belt and braces, add a branch-protection rule on `main` requiring one approving
+review — then even a workflow bug cannot merge on its own.
 
 ## Housekeeping
 

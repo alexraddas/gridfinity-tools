@@ -89,15 +89,24 @@ jobs:
           gh pr close "${{ github.event.issue.number }}" --delete-branch \
              --comment "Closed at the submitter's request."
 
-      # ---------------------------------------------------------------- merge
-      - name: Merge
+      # ------------------------------------------------------- hand to a human
+      # /approve is the submitter saying "the tool fits the sheet" — it is not a
+      # merge. Nothing this pipeline builds reaches main without a maintainer
+      # looking at it, which is the one check that cannot be prompt-injected or
+      # evaded by a classifier-fooling image.
+      - name: Mark ready for review
         if: steps.cmd.outputs.command == 'approve'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          gh pr ready "${{ github.event.issue.number }}"
+          gh pr edit "${{ github.event.issue.number }}" \
+             --add-reviewer "${{ github.repository_owner }}" || true
           gh pr comment "${{ github.event.issue.number }}" --body \
-            "Approved by the submitter after checking the printed sheet. Merging."
-          gh pr merge "${{ github.event.issue.number }}" --squash --delete-branch
+            "The submitter has checked this against the printed sheet and approved it.
+
+          @${{ github.repository_owner }} — ready for your review. The photograph is in
+          the linked issue; this branch contains only the traced geometry."
 
       # -------------------------------------------------------------- rebuild
       - name: Rebuild with the new parameter
@@ -151,12 +160,16 @@ jobs:
           i=cv2.imread('photo.bin',cv2.IMREAD_COLOR)
           sys.exit('cannot decode the photo') if i is None else cv2.imwrite('photo.jpg', i)"
 
-          # The photo is re-checked on every rebuild: the issue is editable, so
-          # the image behind that URL may not be the one that passed the first time.
-          python3 scripts/gate.py photo.jpg --reason-file reject.md || {
-            gh pr comment "${{ github.event.issue.number }}" --body-file reject.md
-            exit 1
-          }
+          # Optional re-check. The issue is editable, so the image behind that
+          # URL may not be the one built the first time — worth re-testing when
+          # a key is configured. Exit 2 (no key) is not a rejection here: the PR
+          # is a draft and a maintainer sees it either way.
+          if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+            python3 scripts/gate.py photo.jpg --reason-file reject.md || {
+              gh pr comment "${{ github.event.issue.number }}" --body-file reject.md
+              exit 1
+            }
+          fi
 
           python3 - <<'PY' > flags.txt
           import json
@@ -179,7 +192,7 @@ jobs:
           python3 scripts/make_sheet.py "$DIR/meta.json"
           python3 scripts/check_stl.py "$DIR/bin.stl" | tee -a build.log
           python3 scripts/tool_readme.py "$DIR" --title "$NAME" --issue "${{ steps.ctx.outputs.issue }}"
-          python3 scripts/validate.py "$DIR" --markdown --out review.md || true
+          python3 scripts/validate.py "$DIR" --markdown --out review.md || true   # optional
 
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

@@ -4,10 +4,10 @@ name: Build a bin from an issue
 # as hostile input:
 #   * the body is parsed by regex, never evaluated, and never sent to a model
 #   * the photo may only come from GitHub's own upload hosts
-#   * the photo is content-checked before it is processed at all
 #   * **the photograph is never committed** — only derived geometry reaches the
 #     branch, so no submitted image can end up in this repository's history
-# The result is a pull request the submitter reviews. See CLAUDE.md.
+# The result is a draft pull request the submitter iterates on and a maintainer
+# merges. Nothing reaches main automatically. See CLAUDE.md.
 on:
   issues:
     types: [opened, labeled]
@@ -26,6 +26,10 @@ jobs:
     if: contains(github.event.issue.labels.*.name, 'new-tool')
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      # Job level so the optional content check can test for it in an `if`.
+      # Unset is the supported configuration: the maintainer is the gate.
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
 
@@ -69,12 +73,14 @@ jobs:
           cv2.imwrite("photo.jpg", img)
           PY
 
-      # Fails closed: exit 2 (API unreachable, no key) is treated exactly like a
-      # rejection. An unreviewed image never reaches the pipeline.
-      - name: Content check
+      # Optional pre-filter. With no ANTHROPIC_API_KEY configured this is
+      # skipped and the maintainer is the only content gate — which is the
+      # intended default, since a person cannot be prompt-injected into
+      # approving something. With a key set it runs and fails closed: exit 2
+      # (API unreachable) counts as a rejection, never as permission.
+      - name: Content check (optional)
         id: gate
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        if: env.ANTHROPIC_API_KEY != ''
         run: |
           if ! python3 scripts/gate.py photo.jpg --out gate.json --reason-file reject.md; then
             echo "rejected=true" >> "$GITHUB_OUTPUT"
@@ -110,10 +116,10 @@ jobs:
           python3 scripts/tool_readme.py "${{ steps.spec.outputs.dir }}" \
             --title "${{ steps.spec.outputs.name }}" --issue "${{ github.event.issue.number }}"
 
+      # Also optional: with no key it exits 2 and writes nothing, and the sheet
+      # comment simply carries no trace review.
       - name: Check the trace
         continue-on-error: true      # a bad verdict informs the submitter, it does not abort
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python3 scripts/validate.py "${{ steps.spec.outputs.dir }}" --markdown --out review.md
 
       - name: Open the pull request
@@ -141,12 +147,15 @@ jobs:
             echo "**The photograph is not included in this branch** — only the traced geometry."
             echo
             echo "@${{ github.event.issue.user.login }}: print \`outline_sheet.pdf\` at 100%, lay the tool on it,"
-            echo "and check the ruler legs read 50 mm. Then comment on this PR:"
+            echo "and check the ruler legs read 50 mm. Adjust it as many times as you need, then"
+            echo "\`/approve\` to hand it to a maintainer for the final look."
             echo
             python3 -c "import sys; sys.path.insert(0,'scripts'); import pr_command; print(pr_command.HELP)"
             echo "Closes #${{ github.event.issue.number }}"
           } > pr.md
-          URL=$(gh pr create --title "Add ${{ steps.spec.outputs.name }}" \
+          # Draft on purpose: a submission is not mergeable until a maintainer
+          # has looked at it, and a draft cannot be merged by accident.
+          URL=$(gh pr create --draft --title "Add ${{ steps.spec.outputs.name }}" \
                              --body-file pr.md --head "$BRANCH" --base main)
           echo "url=$URL" >> "$GITHUB_OUTPUT"
 

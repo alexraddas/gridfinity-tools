@@ -36,7 +36,7 @@ HELP = """\
 | `/symmetric on` | Make the pocket accept the tool either face up |
 | `/notches 2.0` | Bridge concavities shallower than this, to flatten an edge |
 | `/bin 2x7` | Force a bin size in grid units |
-| `/approve` | You are happy with it — merge the tool into the repository |
+| `/approve` | You are happy with it — hand it to a maintainer to merge |
 | `/close` | Abandon this submission |
 """
 
