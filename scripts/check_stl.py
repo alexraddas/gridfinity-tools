@@ -1,5 +1,6 @@
 import struct, numpy as np, cv2, sys, os
-def check(path, raw_outline=None, png=None):
+def check(path, meta_json=None, png=None):
+    """meta_json, when given, overlays that tool's pocket outline on the plan view."""
     d=open(path,'rb').read(); n=struct.unpack('<I',d[80:84])[0]
     tris=np.frombuffer(d[84:84+50*n],dtype=np.dtype([('n','<3f4'),('v','<3,3f4'),('a','<u2')]))
     V=tris['v'].reshape(-1,3)
@@ -21,8 +22,10 @@ def check(path, raw_outline=None, png=None):
         vis=np.full((sz[1],sz[0],3),255,np.uint8); vis[m>0]=(205,220,238)
         cs,_=cv2.findContours(m,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
         cv2.drawContours(vis,cs,-1,(40,60,90),2)
-        if raw_outline is not None:
-            P=np.load(raw_outline); P=P-[(P[:,0].max()+P[:,0].min())/2,0]
+        if meta_json is not None:
+            import json
+            P=np.array(json.load(open(meta_json))["outline"])
+            P=P-[(P[:,0].max()+P[:,0].min())/2,0]
             Q=((P-mn)*S+pad).astype(np.int32); Q[:,1]=vis.shape[0]-Q[:,1]
             cv2.polylines(vis,[Q],True,(40,40,200),2)
         cv2.imwrite(png,vis); print("   wrote",png)

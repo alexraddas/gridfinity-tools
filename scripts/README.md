@@ -1,5 +1,9 @@
 # Pipeline
 
+How the photo-to-STL pipeline works, and why it is built this way. The
+operating rules -- how to verify a bin, how to diagnose a bad fit, which face
+to photograph -- are in [`../CLAUDE.md`](../CLAUDE.md).
+
 Turns an overhead photo of a tool into a gridfinity cutting body.
 
     python3 make_tool.py <photo> <name> --length <mm> --width <mm> [--mirror] --outdir <dir>
@@ -163,30 +167,13 @@ than that, by 4.2% on the Milwaukee 48-22-4047. Pass `--length-mode tip` when
 the figure was taken tip-to-tip. For straight tools the two agree to within
 half a percent and the flag makes no difference.
 
-## Spring-loaded tools, and a cautionary tale about length
+## Spring-loaded tools
 
-The HSC8 6-4A cost three rebuilds, and every one of them traced back to a
-wrong length measurement rather than anything in the pipeline.
-
-It was first built from a 171 mm figure. The photographed pose measured
-172.4-173.6 mm, so scaling to 171 mm shrank the whole model by 0.8-1.5% and
-the printed bin gripped the tool everywhere. That looked like a segmentation
-problem -- "too tight all the way around" is exactly what an undersized mask
-produces -- and was very nearly fixed by inflating the clearance to 2.0 mm.
-The real length is 174 mm. With that corrected the bin came out loose, and
-dropping back to the 1.5 mm default fixed it.
-
-Two things to take from that. **A uniform tightness or looseness is a scale
-error until proven otherwise**, and the scale comes from one hand measurement,
-so check that first and the segmentation second. And **the clearance is not the
-knob for it** -- it is a constant that should stay constant, because using it to
-absorb a scale error hides the error and gets the value wrong in both
-directions when the scale is later fixed.
-
-The printed sheet settles this quickly, and the dash pattern makes it
-quantitative: the PDF dash array is 3-on 2-off *in points*, a 1.764 mm period,
-so photographing the tool on the sheet and counting dashes calibrates the photo
-without a ruler in frame.
+On a tool with sprung handles the traced width is set by how far the handles
+sat apart in the photograph. Three photographs of the HSC8 6-4A traced 73.9,
+74.8 and 74.8 mm at the same length against a hand-measured 81 mm -- consistent
+between photographs, so the disagreement is with the measurement rather than
+the segmentation. `CLAUDE.md` covers what to do about it.
 
 ## Validation sheets
 

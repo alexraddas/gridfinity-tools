@@ -237,7 +237,8 @@ def main():
     a=ap.parse_args()
     a.outdir=os.path.abspath(a.outdir)
 
-    sm,mask,c=segment(a.image,dbg=f"chk_{a.name}_trace.png",
+    os.makedirs(a.outdir,exist_ok=True)
+    sm,mask,c=segment(a.image,dbg=os.path.join(a.outdir,"trace.png"),
                       strict=(18,22,a.dl_strict), mid=(7.5,12,a.dl_mid))
     Lp,Wp,_=metrics(c)
     print("traced: %.0f x %.0f px  ratio %.3f"%(Lp,Wp,Lp/Wp))
@@ -305,7 +306,6 @@ def main():
     if slot_len < ow+8:
         print("  ** WARNING: slot only %.1f mm wider than the tool -- little finger access **"%(slot_len-ow))
 
-    np.save(f"outline_{a.name}.npy",off)
     meta=dict(name=a.name,source=os.path.basename(a.image),
               length_mm=a.length,width_mm=a.width,mirrored=bool(a.mirror),
               depth_mm=a.height,offset_mm=a.offset,
@@ -316,7 +316,6 @@ def main():
               # the traced silhouette itself, before the clearance offset. The
               # validation sheet draws this one: it is what you lay the tool on.
               outline_raw=[[round(float(x),4),round(float(y),4)] for x,y in raw])
-    os.makedirs(a.outdir,exist_ok=True)
     json.dump(meta,open(os.path.join(a.outdir,"meta.json"),"w"),indent=1)
     print("wrote",os.path.join(a.outdir,"meta.json"))
     if not a.no_build:
