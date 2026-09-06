@@ -27,6 +27,17 @@ outline with its mirror. Both orientations now clear by at least 1.35 mm.
 Costs 640 mm2 of extra pocket area and nothing in bin size -- the outline is
 centred on its bounding box, so mirroring cannot widen it.
 
+**The flat top is bridged back in.** Symmetrising has a side effect: the head's
+true peak sits about 7 mm off centre, so unioning the outline with its mirror
+leaves a horn at -7 and +7 mm and a 1.30 mm sag between them -- on a tool whose
+top is dead flat. It showed up immediately on the printed validation sheet, as
+the tool's top edge riding over the pocket line. `--fill-notches 2.0` bridges
+any concavity shallower than 2 mm with its convex-hull chord, which flattens the
+top to within 0.01 mm. The Doyle's defects separate cleanly by depth -- 0.03 and
+0.04 mm of raster noise, the 1.25 mm dip, then 3.34 and 4.71 mm twice over at
+the jaw and shoulder steps, and 146.69 mm for the gap between the handles -- so
+a 2 mm threshold takes the dip and leaves every real feature alone.
+
 **Back to 2x7 after a 2x6 was printed and rejected.** The 242.76 mm outline
 does clear the 2x6 lip opening (245.48 mm), but only by 1.36 mm per end, which
 leaves a lip shelf too thin to be worth having at the handle end. 2x7 gives
@@ -43,6 +54,6 @@ grip.
 ## Regenerate
 
 ```
-python3 ../../scripts/make_tool.py <photo> doyle-cutters --length 240 --width 51 --units-l 7 --symmetric --outdir .
+python3 ../../scripts/make_tool.py <photo> doyle-cutters --length 240 --width 51 --units-l 7 --symmetric --fill-notches 2.0 --outdir .
 python3 ../../scripts/make_bin.py --meta meta.json --out . --stem bin
 ```

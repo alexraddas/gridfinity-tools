@@ -134,6 +134,27 @@ at 50 of 106 vertices, worst case 4.98 mm. Measured on that tool, `--symmetric`
 also cost nothing in location: free play stayed at ±1.9 mm in both axes,
 because the union adds material only where the pocket was already slack.
 
+## Flat edges and the notch that isn't there
+
+`--symmetric` has a side effect worth knowing about. Wherever the original
+outline has an off-centre extremum, the union with its mirror leaves a horn at
+that point *and* at its reflection, with the original profile sagging between
+them. On the Doyle cutters the head's peak sits 7 mm off centre, so the union
+produced peaks at +-7 mm with a 1.30 mm dip between -- on a tool whose top is
+flat. The segmentation was innocent: sampled against the photograph it tracked
+the true edge to within 0.5 mm across the whole top.
+
+`--fill-notches MM` bridges any concavity shallower than MM with its
+convex-hull chord. Depth is the right discriminator, not width: on the Doyle
+the convexity defects run 0.03 and 0.04 mm (raster noise), 1.25 mm (the dip),
+3.34 and 4.71 mm twice over (real steps at the jaw and shoulder), then
+146.69 mm (the gap between the handles), so a 2 mm threshold is unambiguous.
+The outline can only grow, so it cannot stop a tool fitting.
+
+This is the kind of defect only the paper sheet catches. It is invisible in the
+trace overlay, because the trace is correct -- the error is introduced after
+segmentation.
+
 ## Measuring length
 
 By default `length` is the tool's bounding extent along its long axis. On a

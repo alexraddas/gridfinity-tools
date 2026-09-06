@@ -67,6 +67,42 @@ def symmetrise(P, res=40.0):
     c=max(cs,key=cv2.contourArea).reshape(-1,2).astype(np.float64)
     return c/res+mn
 
+def fill_notches(P, max_depth, res=40.0, n=1500):
+    """Bridge concavities shallower than max_depth with their convex-hull chord.
+
+    Unioning an outline with its mirror (--symmetric) leaves a horn wherever the
+    original had an off-centre extremum, and a sag between that horn and its
+    reflection. On the Doyle cutters the head's true peak sits 7 mm off centre,
+    so the union produced peaks at +-7 mm with a 1.30 mm dip between them -- on a
+    tool whose top is dead flat. Bridging the dip restores the flat.
+
+    Depth, not width, is the right discriminator, and the defects separate
+    cleanly: on the Doyle they run 0.03, 0.04 (raster noise), 1.25 (the dip),
+    3.34 and 4.71 twice over (real steps at the jaw and shoulder), then 146.69
+    (the gap between the handles). Anything at or above max_depth is left alone.
+    The outline can only grow, so this cannot stop a tool fitting its pocket.
+    """
+    P = resample(P, n)                     # defects on 30k raster points are noise
+    Q = np.ascontiguousarray((P * res).astype(np.int32).reshape(-1, 1, 2))
+    d = cv2.convexityDefects(Q, cv2.convexHull(Q, returnPoints=False))
+    if d is None:
+        return P
+    drop = np.zeros(len(Q), bool)
+    filled = []
+    for st, en, _far, depth in d.reshape(-1, 4):
+        mm = depth / 256.0 / res
+        if mm >= max_depth or en <= st:
+            continue
+        drop[st + 1:en] = True             # keep the chord endpoints, drop the sag
+        filled.append(mm)
+    if not filled:
+        print("fill-notches: nothing shallower than %.1f mm to bridge" % max_depth)
+        return P
+    print("fill-notches: bridged %d concavity(ies) up to %.2f mm deep (kept %d deeper)"
+          % (len(filled), max(filled), len(d) - len(filled)))
+    return P[~drop]
+
+
 def polish(P,n=520,win=5,simplify=0.06):
     P=smooth(resample(P,n*3),win)
     P=resample(P,n)
@@ -190,6 +226,10 @@ def main():
                     help="rect: length is the bounding extent (default). tip: length is the\n"
                          "max tip-to-tip distance, for bent tools such as scissors")
     ap.add_argument("--mirror",action="store_true",help="mirror across the long axis")
+    ap.add_argument("--fill-notches",type=float,default=0.0,metavar="MM",
+                    help="bridge concavities shallower than MM with a straight chord.\n"
+                         "Use with --symmetric, which can leave a sag between an\n"
+                         "off-centre peak and its mirror on a tool that is really flat")
     ap.add_argument("--symmetric",action="store_true",
                     help="union the outline with its mirror, so the pocket takes the\n"
                          "tool either face up. Use on any tool with crossed jaws")
@@ -222,6 +262,8 @@ def main():
             np.ptp(sym[:,0]),np.ptp(sym[:,1]),cv2.contourArea(sym.astype(np.float32))
             -cv2.contourArea(raw.astype(np.float32))))
         raw=sym
+    if a.fill_notches>0:
+        raw=fill_notches(raw,a.fill_notches)
     off=polish(offset_polygon(raw,a.offset,res=40.0))
     if a.mirror:
         off=off[::-1].copy(); off[:,0]*=-1            # mirror across the long axis
