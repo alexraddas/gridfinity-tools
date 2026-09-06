@@ -94,14 +94,103 @@ Scale comes entirely from the length measurement, so a bin that grips or
 rattles *uniformly* is almost always a mis-measured length rather than a bad
 trace. The 1:1 sheet settles it.
 
-## Submitting a tool
+## Adding a tool
 
-[Open an issue](../../issues/new?template=new-tool.yml) with an overhead photo
-and two measurements. A bin is generated automatically and opened as a pull
-request with a dimensioned 1:1 drawing to print and check; comment `/approve`
-on it when the tool sits right on the sheet, or `/length 240` and the like to
-adjust. Your photograph is used to trace the outline and is never committed —
-only the geometry is.
+Open an issue with a photo and two measurements, and a bin is built for you
+automatically. You review it against a printed drawing, adjust it by commenting,
+and a maintainer merges it. No account setup, no software to install.
+
+### 1. Photograph the tool
+
+This is the part that decides whether any of it works.
+
+- Shoot **straight down**, tool **flat**, whole tool in frame.
+- **Diffuse light.** A hard shadow beside a tool can be darker than the tool
+  itself, and gets traced as part of it. Overcast daylight or open shade is ideal.
+- Leave roughly **a tool-width of plain background** on every side. Wood or
+  white paper both work; a cluttered bench does not.
+- If the tool has a label face, shoot **that** face — pockets are cut from the
+  face you photograph.
+- Spring-loaded handles: let them **rest**, don't hold them.
+
+### 2. Measure it
+
+| | |
+|---|---|
+| **Length** | Overall, along the long axis. **The entire model is scaled from this one number** — get it right and everything else follows; get it wrong and the bin is uniformly tight or loose. |
+| **Width** | Widest point, with the tool lying as photographed. A cross-check only; it does not rescale anything, and a few percent of disagreement is normal. |
+
+### 3. Submit
+
+**[Open the form →](../../issues/new?template=new-tool.yml)** Fill in the
+manufacturer, part number, both measurements, whether the jaws cross, and drag
+the photo in. Submit.
+
+```mermaid
+sequenceDiagram
+    actor You
+    participant Issue
+    participant CI as GitHub Actions
+    participant PR as Draft PR
+    actor Maintainer
+
+    You->>Issue: photo + length + width
+    Issue->>CI: new-tool label fires the build
+    CI->>CI: trace outline, build STL/DXF/sheet
+    CI->>PR: open draft (geometry only, no photo)
+    CI-->>You: link to outline_sheet.pdf
+
+    loop until it fits
+        You->>You: print sheet at 100%, lay tool on it
+        You->>PR: /length 240
+        PR->>CI: rebuild
+        CI-->>You: new sheet
+    end
+
+    You->>PR: /approve
+    PR->>Maintainer: marked ready, review requested
+    Maintainer->>PR: merge
+```
+
+### 4. Check it before it merges
+
+Within a few minutes you get a **draft pull request** with a comment linking to
+`outline_sheet.pdf`. Print that at 100% — *not* "fit to page" — and lay the real
+tool on it.
+
+**Check both ruler legs measure 50 mm first.** If they don't, your printer
+scaled the page and nothing else on the sheet means anything.
+
+Then look at the outline: the tool should sit on the solid line with an even gap
+out to the dashed one. A bin that would grip or rattle *uniformly* is a
+mis-measured length, not a bad trace.
+
+### 5. Adjust it by commenting
+
+Comment on the pull request. Only you — the person who opened the issue — can
+run these, and each one rebuilds and posts a fresh sheet:
+
+| Command | Effect |
+|---|---|
+| `/length 240` | Rebuild at a corrected overall length |
+| `/width 51` | Update the width cross-check |
+| `/symmetric on` | Make the pocket accept the tool either face up |
+| `/notches 2.0` | Bridge shallow dips, to flatten an edge that should be straight |
+| `/bin 2x7` | Force a bin size in grid units |
+| `/approve` | You're happy — hand it to a maintainer to merge |
+| `/close` | Abandon the submission |
+
+Go round as many times as you need. Nothing is merged until you say `/approve`
+**and** a maintainer reviews it.
+
+### What happens to your photo
+
+It is used to trace the outline and is **never committed to this repository** —
+only the resulting geometry is. The drawing posted to the pull request is drawn
+from the outline and contains no pixels from your photo.
+
+A submission with no activity for 30 days is closed automatically and its branch
+deleted, so unconfirmed bins don't sit around looking ready to merge.
 
 ## Making a bin for your own tool
 
