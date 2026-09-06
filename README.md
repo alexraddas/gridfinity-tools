@@ -46,9 +46,12 @@ Thirteen tools, all built and verified. Bin size is in Gridfinity units
         cutout.dxf          2D outline in millimetres, for CAD
         outline_sheet.pdf   dimensioned 1:1 drawing — print and check the fit
         outline_sheet.jpg   the same drawing at 300 dpi
-        trace.png           traced outline drawn over the source photograph
         meta.json           every parameter used, including the outline points
         README.md           measurements, and anything unusual about this tool
+
+A `trace.png` — the traced outline drawn over the source photograph — is also
+written into each folder when you rebuild. It is deliberately not committed;
+it is a working check, and thirteen of them is 22 MB of regenerable pixels.
 
 ## Printing
 
