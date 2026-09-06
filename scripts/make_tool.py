@@ -229,11 +229,12 @@ def main():
     ap.add_argument("--slot-y",type=float,default=None)
     ap.add_argument("--outdir",default=OUTDIR)
     ap.add_argument("--keep-open",action="store_true",help="leave the Fusion document open")
-    ap.add_argument("--dl-strict",type=float,default=85.0,
-                    help="luminance threshold for the confident seed (default 85)")
-    ap.add_argument("--dl-mid",type=float,default=80.0,
-                    help="luminance threshold for the probable-foreground band (default 80).\n"
-                         "Lower both for a low-contrast tool, e.g. bare steel on a pale backdrop")
+    ap.add_argument("--dl-strict",type=float,default=None,
+                    help="luminance threshold for the confident seed. Chosen from the\n"
+                         "backdrop by default: 85 on wood, 30 on a flat studio sweep")
+    ap.add_argument("--dl-mid",type=float,default=None,
+                    help="luminance threshold for the probable-foreground band.\n"
+                         "Defaults alongside --dl-strict; lower both for a low-contrast tool")
     ap.add_argument("--length-mode",choices=("rect","tip"),default="rect",
                     help="rect: length is the bounding extent (default). tip: length is the\n"
                          "max tip-to-tip distance, for bent tools such as scissors")
@@ -254,7 +255,8 @@ def main():
 
     os.makedirs(a.outdir,exist_ok=True)
     sm,mask,c=segment(a.image,dbg=os.path.join(a.outdir,"trace.png"),
-                      strict=(18,22,a.dl_strict), mid=(7.5,12,a.dl_mid))
+                      strict=(18,22,a.dl_strict) if a.dl_strict else None,
+                      mid=(7.5,12,a.dl_mid) if a.dl_mid else None)
     Lp,Wp,_=metrics(c)
     print("traced: %.0f x %.0f px  ratio %.3f"%(Lp,Wp,Lp/Wp))
     if a.width:

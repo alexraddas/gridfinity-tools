@@ -121,8 +121,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          git fetch -q origin "${{ steps.ctx.outputs.branch }}"
+          git fetch -q origin "${{ steps.ctx.outputs.branch }}" main
           git checkout -q "${{ steps.ctx.outputs.branch }}"
+          # Always rebuild with the pipeline as it stands on main. The branch
+          # carries whatever scripts/ existed when it was cut, so without this a
+          # fix landed after the branch was created would never reach a rebuild
+          # -- the submitter would keep getting the same wrong outline.
+          git checkout -q origin/main -- scripts/ requirements.txt
 
           # The photo is not in the repository by design, so re-read it from the
           # issue that started this. Same parser, same host restriction.

@@ -77,14 +77,31 @@ def channels(sm):
             A-_bgfield(A,cv2.MORPH_OPEN),
             dL)
 
+# A studio backdrop is a different contrast regime, not a noisier version of the
+# usual one. On wood the close-filter field sits well above L across the frame,
+# so dL runs 100-150 in the background and a tool has to clear 85 to stand out.
+# On a flat white sweep the background is dL 0 and a polished steel tool only
+# reaches ~55 -- it never touches the seed, so only black-oxide parts get
+# selected and GrabCut settles around a fragment. Every photograph in this
+# repository has p90(dL) >= 51; a studio image measures 0.0, so the two regimes
+# separate cleanly and the switch cannot disturb an existing tool.
+FLAT_BACKDROP = 20.0          # p90(dL) below this means a uniform sweep
+DL_WOOD  = (85.0, 80.0)       # strict, mid
+DL_FLAT  = (30.0, 20.0)
+
 def segment(SRC, work=1400, iters=6, shrink=0,
-            strict=(18,22,85), mid=(7.5,12,80), dbg=None):
+            strict=None, mid=None, dbg=None):
     img=cv2.imread(SRC,cv2.IMREAD_COLOR)
     H0,W0=img.shape[:2]; s=float(work)/max(H0,W0)
     sm=cv2.resize(img,(int(W0*s),int(H0*s)),interpolation=cv2.INTER_AREA)
     h,w=sm.shape[:2]
     dB,dA,dL=channels(sm)
     roi=backdrop_roi(sm)
+
+    flat = float(np.percentile(dL,90)) < FLAT_BACKDROP
+    ds,dm = DL_FLAT if flat else DL_WOOD
+    if strict is None: strict=(18,22,ds)
+    if mid    is None: mid   =(7.5,12,dm)
 
     def band(t,op,cl):
         m=(((dB>t[0])|(dA>t[1])|(dL>t[2])).astype(np.uint8))*255
