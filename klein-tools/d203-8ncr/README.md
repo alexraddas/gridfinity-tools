@@ -5,9 +5,9 @@ Generated automatically from a submitted photograph ([#1](../../issues/1)). Nobo
 | | |
 |---|---|
 | Measured length | 214 mm |
-| Width | 46.8 mm (derived from the photo) |
-| Traced (raw) | 213.88 x 46.82 mm |
-| Pocket | 216.72 x 49.77 mm |
+| Width | 50.7 mm (derived from the photo) |
+| Traced (raw) | 213.87 x 50.69 mm |
+| Pocket | 216.72 x 53.66 mm |
 | Cutout depth | 20 mm |
 | Bin size | 2x6 units (83.38 x 251.38 mm) |
 | Clearance | 1.5 mm radial |

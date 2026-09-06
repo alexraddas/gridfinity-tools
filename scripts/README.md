@@ -21,7 +21,15 @@ estimated background so a lighting gradient across the bench does not bias them:
 |---|---|---|
 | `dB` b\* below local background | bare/polished steel (cool) | +9..+14 |
 | `dL` luminance below local background | black-oxide heads | — |
-| `dA` a\* above local background | coloured grips | ~0 |
+| `dA` a\* above local background | *red* grips | ~0 |
+| `dS` chroma above local background | grips of **any** hue | ~9-15 |
+
+`dA` keys on a\* alone, so it sees a red grip and is blind to a yellow one --
+yellow puts all its colour in b\*. That cost the first automated submission the
+outer edge of both handles: yellow at L 230 against a white backdrop is only
+dL 25, so just the shaded core of each grip passed the darkness test. `dS`
+closes it, and on a neutral backdrop the separation is enormous: 0 in the
+background, 85 on the grips.
 
 A strict threshold seeds confident tool pixels; GrabCut then models the full colour
 distributions and settles the boundary. Brightness alone does **not** work — polished
@@ -82,9 +90,13 @@ flips the sign of the luminance test. Taking the max of both directions is
 *not* safe -- it over-triggers badly on light backdrops -- so the direction is
 chosen once per image from the backdrop's own brightness.
 
-Wood and white paper both work. On wood the b\* channel does the heavy lifting
-(wood is warm, metal is cool); on white paper b\* is near-neutral and darkness
-carries it instead.
+**Shoot on a plain, pale, neutral background.** It is the easier case by a wide
+margin: every tool is darker than the backdrop so `dL` is close to a perfect
+discriminator, and a neutral backdrop has no chroma of its own so `dS` isolates
+coloured grips outright. Wood works and the committed tools were all shot on
+it -- there the b\* channel does the heavy lifting, since wood is warm and metal
+is cool -- but it is the harder problem, and the thresholds differ enough that
+the pipeline picks them per photograph rather than assuming.
 
 **The backdrop must be uncluttered, and the tool must sit well inside it.** A
 sheet that does not fill the frame leaves carpet, bags and boxes around it,
