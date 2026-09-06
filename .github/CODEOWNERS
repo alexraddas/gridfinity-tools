@@ -1,0 +1,3 @@
+# Only a code owner can satisfy the review requirement on main.
+# github-actions[bot] is not one, so no workflow can approve its own PR.
+* @alexraddas
