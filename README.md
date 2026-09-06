@@ -20,7 +20,7 @@ Milwaukee, IWISS, Pressmaster, Knipex-style ferrule crimper, 42 mm grid.
 ## Tools in this repository
 
 <!-- tool-index:begin -->
-Fourteen tools, all built and verified. Bin size is in Gridfinity units (1 unit = 42 mm).
+25 tools, all built and verified. Bin size is in Gridfinity units (1 unit = 42 mm).
 
 | Tool | Type | Size (mm) | Bin |
 |---|---|---|---|
@@ -31,9 +31,20 @@ Fourteen tools, all built and verified. Bin size is in Gridfinity units (1 unit 
 | [IWISS IWD-12](iwiss/iwd-12-deutsch-crimper) | Deutsch terminal crimper | 160 × 101 | 3×5 |
 | [Klein Tools 1005](klein-tools/1005-crimper) | Wire crimper / cutter | 246 × 52 | 2×7 |
 | [Klein Tools 1019](klein-tools/1019-wire-stripper) | Wire stripper / crimper | 196 × 55 | 2×6 |
+| [Klein Tools 11045](klein-tools/11045-wire-stripper) | Wire stripper/cutter | 159 × 98 | 3×5 |
+| [Klein Tools 11047](klein-tools/11047-wire-stripper) | Wire stripper/cutter | 159 × 98 | 3×5 |
+| [Klein Tools 11053](klein-tools/11053-wire-stripper) | Wire stripper/cutter | 181 × 62 | 2×5 |
+| [Klein Tools 11055](klein-tools/11055-wire-stripper) | Wire stripper/cutter | 181 × 72 | 3×5 |
+| [Klein Tools 63020](klein-tools/63020-multi-cable-cutter) | Multi-cable cutter | 177 × 57 | 2×5 |
+| [Klein Tools 63028](klein-tools/63028-cable-cutter) | Cable cutter | 216 × 44 | 2×6 |
+| [Klein Tools 63050](klein-tools/63050-cable-cutter) | Cable cutter | 241 × 53 | 2×7 |
+| [Klein Tools D201-7NE](klein-tools/d201-7ne-linemans-pliers) | Lineman's pliers | 189 × 44 | 2×5 |
+| [Klein Tools D203-6](klein-tools/d203-6-long-nose-pliers) | Long-nose pliers | 168 × 59 | 2×5 |
 | [Klein Tools D203-8NCR](klein-tools/d203-8ncr) | Long-nose side-cutting pliers | 214 × 51 | 2×6 |
 | [Klein Tools D228-8](klein-tools/d228-8-diagonal-cutters) | Diagonal cutters | 206 × 49 | 2×6 |
+| [Klein Tools D248-8](klein-tools/d248-8-diagonal-cutters) | Diagonal cutters | 205 × 50 | 2×6 |
 | [Klein Tools D2755](klein-tools/d2755-flush-cutter) | Flush cutter | 131 × 87 | 3×4 |
+| [Klein Tools K1412](klein-tools/k1412-wire-stripper) | Wire stripper | 197 × 62 | 2×6 |
 | [Milwaukee 48-22-3079](milwaukee/48-22-3079-wire-stripper) | 6-in-1 wire stripper | 196 × 53 | 2×5 |
 | [Milwaukee 48-22-4047](milwaukee/48-22-4047-scissors) | Offset scissors | 243 × 95 | 3×7 |
 | [Pressmaster KRB 0560](pressmaster/krb-0560-crimper) | Ratcheting crimper | 253 × 72 | 3×7 |
