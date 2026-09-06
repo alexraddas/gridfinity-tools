@@ -5,3 +5,6 @@ __pycache__/
 *.f3z
 *.3mf
 trace.png
+photos/incoming/*
+!photos/incoming/README.md
+!photos/incoming/MANIFEST.md
