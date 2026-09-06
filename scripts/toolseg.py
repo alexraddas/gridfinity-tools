@@ -73,9 +73,17 @@ def channels(sm):
         dL = L-_bgfield(L,cv2.MORPH_OPEN)      # bright tool on a dark backdrop
     else:
         dL = _bgfield(L,cv2.MORPH_CLOSE)-L     # dark tool on a light backdrop
+    # Colour, irrespective of hue. dA keys on a*, so it sees red grips and is
+    # blind to yellow ones -- a yellow grip has a* near neutral and all its
+    # colour in b*. That cost the first real submission the outer edge of both
+    # handles: yellow at L 230 against a white backdrop is only dL 25, so just
+    # the shaded core of the grip passed. Chroma catches any coloured grip at
+    # any lightness, and against a neutral backdrop the separation is enormous
+    # (0 background, 85 on the grips).
+    dS = chroma-_bgfield(chroma,cv2.MORPH_OPEN)
     return (_bgfield(Bn,cv2.MORPH_CLOSE)-B,
             A-_bgfield(A,cv2.MORPH_OPEN),
-            dL)
+            dL, dS)
 
 # A studio backdrop is a different contrast regime, not a noisier version of the
 # usual one. On wood the close-filter field sits well above L across the frame,
@@ -88,6 +96,7 @@ def channels(sm):
 FLAT_BACKDROP = 20.0          # p90(dL) below this means a uniform sweep
 DL_WOOD  = (85.0, 80.0)       # strict, mid
 DL_FLAT  = (30.0, 20.0)
+DS_STRICT, DS_MID = 30.0, 18.0   # chroma above the local background
 
 def segment(SRC, work=1400, iters=6, shrink=0,
             strict=None, mid=None, dbg=None):
@@ -95,16 +104,19 @@ def segment(SRC, work=1400, iters=6, shrink=0,
     H0,W0=img.shape[:2]; s=float(work)/max(H0,W0)
     sm=cv2.resize(img,(int(W0*s),int(H0*s)),interpolation=cv2.INTER_AREA)
     h,w=sm.shape[:2]
-    dB,dA,dL=channels(sm)
+    dB,dA,dL,dS=channels(sm)
     roi=backdrop_roi(sm)
 
     flat = float(np.percentile(dL,90)) < FLAT_BACKDROP
     ds,dm = DL_FLAT if flat else DL_WOOD
-    if strict is None: strict=(18,22,ds)
-    if mid    is None: mid   =(7.5,12,dm)
+    if strict is None: strict=(18,22,ds,DS_STRICT)
+    if mid    is None: mid   =(7.5,12,dm,DS_MID)
+    # callers passing the old 3-tuple keep working
+    if len(strict)==3: strict=tuple(strict)+(DS_STRICT,)
+    if len(mid)==3:    mid=tuple(mid)+(DS_MID,)
 
     def band(t,op,cl):
-        m=(((dB>t[0])|(dA>t[1])|(dL>t[2])).astype(np.uint8))*255
+        m=(((dB>t[0])|(dA>t[1])|(dL>t[2])|(dS>t[3])).astype(np.uint8))*255
         m=cv2.bitwise_and(m,roi)          # never look outside the backdrop
         m=cv2.morphologyEx(m,cv2.MORPH_OPEN,K(op))
         m=cv2.morphologyEx(m,cv2.MORPH_CLOSE,K(cl))
